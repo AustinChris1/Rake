@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- The croupier's rake mid-pull: handle, blade, and the chips it drags off the table. -->
+  <rect width="64" height="64" rx="14" fill="#0E0E12"/>
+  <g stroke="#E8B54D" stroke-width="5" stroke-linecap="round">
+    <path d="M48 9 L26 37"/>
+    <path d="M10 42 L38 42"/>
+  </g>
+  <g fill="#E8B54D">
+    <circle cx="16" cy="52" r="5"/>
+    <circle cx="29" cy="53" r="5"/>
+  </g>
+  <circle cx="45" cy="54" r="5" stroke="#E8B54D" stroke-width="3" fill="none"/>
+</svg>

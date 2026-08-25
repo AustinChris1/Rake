@@ -1,0 +1,19 @@
+# deps
+node_modules/
+
+# secrets — .env.example is the committed template
+.env
+.env.local
+.env*.local
+
+# next / vercel build output
+.next/
+.vercel/
+.turbo/
+
+# local run artifacts: receipts, screenshots, dev-server logs
+out/
+
+# misc
+*.tsbuildinfo
+.DS_Store

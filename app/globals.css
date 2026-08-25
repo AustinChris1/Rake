@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* RAKE — noir casino: graphite black, champagne gold, cream receipts, loss red. */
+@theme {
+  --color-noir-950: #08080a;
+  --color-noir-900: #0e0e12;
+  --color-noir-800: #16161c;
+  --color-noir-700: #20202a;
+  --color-noir-line: rgba(233, 193, 94, 0.16);
+
+  --color-gold-300: #f2d488;
+  --color-gold-400: #e9c15e;
+  --color-gold-500: #dcac3f;
+  --color-gold-600: #a8842c;
+
+  --color-cream: #ece6d6;
+  --color-cream-dim: #9d9a8d;
+  --color-paper: #f5f0e2;
+  --color-paper-dim: #e5ddc6;
+  --color-ink: #1d1b14;
+  --color-ink-soft: #6e6858;
+
+  --color-loss: #e5484d;
+  --color-loss-deep: #a83a32;
+  --color-win: #58a65c;
+
+  --font-display: var(--font-unbounded), "Arial Black", sans-serif;
+  --font-mono: var(--font-plex), ui-monospace, Consolas, monospace;
+}
+
+::selection {
+  background: var(--color-gold-400);
+  color: var(--color-noir-950);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-noir-950);
+}
+
+/* thermal-receipt perforated edges */
+.receipt {
+  position: relative;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.receipt::before,
+.receipt::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-image:
+    linear-gradient(45deg, transparent 33.333%, var(--color-paper) 33.333%, var(--color-paper) 66.667%, transparent 66.667%),
+    linear-gradient(-45deg, transparent 33.333%, var(--color-paper) 33.333%, var(--color-paper) 66.667%, transparent 66.667%);
+  background-size: 14px 16px;
+}
+.receipt::before {
+  top: -8px;
+  background-position: 0 8px;
+}
+.receipt::after {
+  bottom: -8px;
+}
+
+/* thin gold scrollbars on dark panels */
+.trace-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.trace-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-noir-700);
+  border-radius: 4px;
+}
