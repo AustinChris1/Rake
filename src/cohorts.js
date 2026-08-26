@@ -25,7 +25,7 @@ const PLUMBING = new Set([
 ]);
 
 const FUNDING_MIN_USD = 25; // funding walks only for sellers above this, bounded
-const FUNDING_MAX_WALLETS = 120;
+const FUNDING_MAX_WALLETS = 60; // top sellers by USD — the dollars that matter, within free-tier pace
 
 const FIRST_SWAPS_N = 50;
 const FIRST_SCAN_MAX_BLOCKS = 200_000n; // give up the first-swaps scan after ~4.6 days of blocks
@@ -139,12 +139,18 @@ export async function initialLpEoa({ ctx, creationBlock }) {
 //   clusters       — groups of ≥2 sellers sharing the same first funder (one operator's fleet)
 export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log = () => {} }) {
   if (!fundingEnabled()) return { enabled: false };
-  const targets = sellers
-    .filter((s) => s.usd >= FUNDING_MIN_USD)
+  const eligible = sellers.filter(
+    (s) => s.usd >= FUNDING_MIN_USD && /^0x[0-9a-f]{40}$/.test(s.wallet), // never walk 'unattributed'
+  );
+  const targets = eligible
     .sort((a, b) => b.usd - a.usd)
     .slice(0, FUNDING_MAX_WALLETS)
     .map((s) => s.wallet);
-  log(`funding walk: ${targets.length} sellers ≥ $${FUNDING_MIN_USD}`);
+  log(
+    targets.length < eligible.length
+      ? `funding walk: top ${targets.length} of ${eligible.length} sellers ≥ $${FUNDING_MIN_USD} (by USD)`
+      : `funding walk: ${targets.length} sellers ≥ $${FUNDING_MIN_USD}`,
+  );
   const { funderOf, failed, firstError } = await walkFunders(targets, {
     onProgress: (d, t) => d % 25 === 0 && log(`funding walk ${d}/${t}`),
   });

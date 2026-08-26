@@ -19,11 +19,11 @@ async function alchemyRequest(method, params) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: reqId++, method, params }),
     });
-    if (res.status === 429 && attempt < 3) {
-      await new Promise((r) => setTimeout(r, 1200 * (attempt + 1))); // burst limit — back off and retry
+    if (res.status === 429 && attempt < 5) {
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); // burst limit — back off and retry
       continue;
     }
-    if (!res.ok) throw new Error(`Alchemy HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`Alchemy HTTP ${res.status}: ${(await res.text()).slice(0, 140)}`);
     const json = await res.json();
     if (json.error) throw new Error(`Alchemy: ${json.error.message}`);
     return json.result;
@@ -97,7 +97,9 @@ export async function outgoingTransferCount(address) {
 // Bounded, cached funding walk over a set of wallets with limited concurrency.
 // Failures are counted and the first error is kept — a fully-failed walk must be
 // reported as FAILED upstream, never passed off as "walked N sellers".
-export async function walkFunders(wallets, { concurrency = 4, onProgress = () => {} } = {}) {
+// Concurrency 2: getAssetTransfers is ~150 CU and the free tier sustains ~330 CU/s —
+// two lanes ride just under the throttle instead of tripping 429 storms.
+export async function walkFunders(wallets, { concurrency = 2, onProgress = () => {} } = {}) {
   const list = [...wallets];
   const out = {};
   let next = 0;
