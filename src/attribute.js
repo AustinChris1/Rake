@@ -23,7 +23,9 @@ export async function buildTxAttribution(txHashes, { log = () => {} } = {}) {
   const meta = {};
   let unattributed = 0;
   let bundles = 0;
-  await mapLimit(txHashes, 6, async (hash) => {
+  // High concurrency is safe here: the transport batches these into few HTTP calls
+  // (10 per POST), so 100 workers ≈ 10 batch requests in flight.
+  await mapLimit(txHashes, 100, async (hash) => {
     const tx = await getTransactionSafe(hash);
     if (!tx) {
       unattributed++;

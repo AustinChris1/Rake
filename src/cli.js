@@ -60,7 +60,8 @@ if (rake) {
     console.log('');
     console.log('  funding clusters (sellers sharing one first-funder):');
     for (const cl of rake.clusters.slice(0, 5)) {
-      console.log(`     funder ${short(cl.funder)} → ${cl.size} sellers: ${cl.members.slice(0, 4).map((m) => short(m.wallet)).join(', ')}${cl.size > 4 ? '…' : ''}`);
+      const tag = cl.infra ? `  [${cl.infraReason ?? 'infra'} — not house]` : '  [HOUSE: cluster]';
+      console.log(`     funder ${short(cl.funder)} → ${cl.size} sellers: ${cl.members.slice(0, 4).map((m) => short(m.wallet)).join(', ')}${cl.size > 4 ? '…' : ''}${tag}`);
     }
   }
   console.log('');
@@ -72,6 +73,9 @@ if (ticket) {
   console.log('YOUR TICKET');
   if (ticket.status === 'NOT_IN_WINDOW') {
     console.log(`  ${ticket.reason}`);
+    for (const t of ticket.receivedThisToken ?? []) {
+      console.log(`  ✓ but the wallet DID receive ${Math.round(t.value ?? 0)} ${tape.tokenSymbol} in-window via a DIFFERENT pool — tx ${t.txHash}`);
+    }
     if (ticket.sameSymbolSuspect) {
       const s = ticket.sameSymbolSuspect;
       console.log(`  ⚠ SAME TICKER, DIFFERENT CONTRACT: this wallet received ${Math.round(s.value ?? 0)} "${tape.tokenSymbol}" at ${s.address}${s.ts ? ' on ' + s.ts : ''} (tx ${s.txHash})`);

@@ -21,6 +21,7 @@ const PLUMBING = new Set([
   V4_POOL_MANAGER.toLowerCase(),
   ...ENTRYPOINTS,
   '0x0000000000000000000000000000000000000000',
+  '0x4200000000000000000000000000000000000006', // WETH — wrap/unwrap flows, never an operator
 ]);
 
 const FUNDING_MIN_USD = 25; // funding walks only for sellers above this, bounded
@@ -166,16 +167,40 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
     .sort((a, b) => b.size - a.size);
 
   // Infrastructure guard: a shared first-funder only implies one operator when the
-  // funder is a low-degree wallet. Exchange hot wallets and disperse bots fund
-  // thousands of unrelated addresses — accusing their users would be a smear.
+  // funder is a low-degree EOA. Contracts (bridges, factories, paymasters, routers)
+  // and exchange hot wallets / disperse bots fund thousands of unrelated addresses —
+  // accusing their users would be a smear. Operators fund fleets from EOAs.
   const INFRA_DEGREE = 1000;
   for (const cl of clusters) {
     try {
+      const code = await withFailover((c) => c.getCode({ address: cl.funder }));
+      if (code && code !== '0x') {
+        cl.infra = true;
+        cl.infraReason = 'contract funder (bridge/factory/paymaster)';
+        continue;
+      }
+      // Members that are themselves contracts are smart accounts — a shared funder
+      // is then usually the wallet product's gas tank seeding unrelated users, not
+      // one operator. Shown, never counted. (Ambiguity never accuses.)
+      const sampled = cl.members.slice(0, 5);
+      const codes = await Promise.all(
+        sampled.map((m) => withFailover((c) => c.getCode({ address: m.wallet })).catch(() => '0x')),
+      );
+      const contractMembers = codes.filter((c) => c && c !== '0x').length;
+      if (contractMembers * 2 >= sampled.length) {
+        cl.infra = true;
+        cl.infraReason = 'members are smart accounts — funder may be wallet infrastructure';
+        continue;
+      }
       cl.funderOutgoing = await outgoingTransferCount(cl.funder); // capped at 1000
       cl.infra = cl.funderOutgoing >= INFRA_DEGREE;
+      if (cl.infra) {
+        cl.infraReason = `high-degree funder (${cl.funderOutgoing}+ lifetime transfers)`;
+      }
     } catch {
       cl.funderOutgoing = null;
-      cl.infra = true; // unknown degree → never accuse
+      cl.infra = true; // unknown → never accuse
+      cl.infraReason = 'funder degree unknown';
     }
   }
   const clusterHouse = new Set(

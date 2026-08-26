@@ -181,9 +181,9 @@ export default function Receipt({ report }) {
                 <span key={m.wallet}>{i > 0 && ', '}<A href={addrUrl(m.wallet)}>{short(m.wallet)}</A></span>
               ))}{cl.size > 6 ? '…' : ''}{' '}
               {cl.infra ? (
-                <em>— high-degree funder ({cl.funderOutgoing ?? '?'}+ lifetime transfers: exchange or disperse infrastructure, NOT counted as house)</em>
+                <em>— {cl.infraReason ?? 'infrastructure funder'}: NOT counted as house</em>
               ) : (
-                <b className="text-[#8a3d6e]">— low-degree funder ({cl.funderOutgoing} lifetime transfers): counted as house, cohort "cluster"</b>
+                <b className="text-[#8a3d6e]">— low-degree EOA funder ({cl.funderOutgoing} lifetime transfers): counted as house, cohort "cluster"</b>
               )}
             </p>
           ))}
@@ -199,6 +199,23 @@ export default function Receipt({ report }) {
           {ticket.status === 'NOT_IN_WINDOW' ? (
             <>
               <p className="mt-3 text-[13px] text-ink-soft">{ticket.reason}</p>
+              {ticket.receivedThisToken?.length > 0 && (
+                <div className="mt-3 border-l-2 border-gold-600 pl-3 text-[13px]">
+                  <p className="font-semibold text-ink">
+                    But this wallet DID receive {tape.tokenSymbol} inside this window — through a different pool.
+                  </p>
+                  {ticket.receivedThisToken.map((t) => (
+                    <p key={t.txHash} className="mt-1 text-ink-soft">
+                      {Math.round(t.value ?? 0).toLocaleString()} {tape.tokenSymbol}
+                      {t.ts ? ` on ${t.ts.slice(0, 16).replace('T', ' ')} UTC` : ''} — <A href={txUrl(t.txHash)}>receipt</A>
+                    </p>
+                  ))}
+                  <p className="mt-1 text-ink-soft">
+                    This tape reads the token's top-volume pool only; the router filled these swaps elsewhere. The receipts
+                    above are the proof of your buy — it just never touched this pool.
+                  </p>
+                </div>
+              )}
               {ticket.sameSymbolSuspect && (
                 <div className="mt-3 border-l-2 border-loss pl-3 text-[13px]">
                   <p className="font-semibold text-loss-deep">

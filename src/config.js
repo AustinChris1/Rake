@@ -1,9 +1,12 @@
 // RAKE — configuration: chain endpoints and known quote tokens on Base.
 
+// Order matters: publicnode first — measured fastest, accepts 20-call JSON-RPC
+// batches and wide getLogs ranges. mainnet.base.org caps batches at 10 calls.
+// llamarpc is excluded: it answers with an HTML block page that poisons failover.
+// 1rpc is a last resort (50-block getLogs cap, aggressive rate limits).
 export const RPC_URLS = [
-  'https://mainnet.base.org',
   'https://base.publicnode.com',
-  'https://base.llamarpc.com',
+  'https://mainnet.base.org',
   'https://1rpc.io/base',
 ];
 

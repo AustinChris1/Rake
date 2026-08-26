@@ -75,11 +75,23 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
     if (wallet) {
       log(`building ticket for ${wallet}…`);
       ticket = buildTicket(tape, rake, wallet);
-      // Empty ticket + a same-symbol token at a DIFFERENT contract in the wallet's
-      // recent inbound transfers = the classic wrong-CA trap. Say so, with receipts.
+      // An empty ticket deserves an explanation, not a shrug. Two cheap checks on the
+      // wallet's recent inbound transfers:
+      //  1. This very token received IN-window => the buy routed through a different
+      //     pool of the token (this tape reads the top-volume pool only).
+      //  2. A same-symbol token at a DIFFERENT contract => the classic wrong-CA trap.
       if (ticket.status === 'NOT_IN_WINDOW' && fundingEnabled() && tape.tokenSymbol) {
         try {
-          const inbound = await recentInboundTransfers(wallet);
+          const inbound = await recentInboundTransfers(wallet, 50);
+          const fromTs = Date.parse(tape.window.fromTime);
+          const toTs = Date.parse(tape.window.toTime);
+          const received = inbound.filter(
+            (t) => t.address === tape.token && t.ts && Date.parse(t.ts) >= fromTs && Date.parse(t.ts) <= toTs,
+          );
+          if (received.length) {
+            ticket.receivedThisToken = received.slice(0, 5);
+            log(`ticket: wallet DID receive ${tape.tokenSymbol} in-window via ${received.length} transfer(s) — outside this pool's tape`);
+          }
           const suspect = inbound.find(
             (t) =>
               t.asset &&
@@ -87,12 +99,12 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
               t.asset.toLowerCase() === tape.tokenSymbol.toLowerCase() &&
               t.address !== tape.token,
           );
-          if (suspect) {
+          if (suspect && !received.length) {
             ticket.sameSymbolSuspect = suspect;
             log(`⚠ wallet holds a DIFFERENT token also named "${tape.tokenSymbol}" — ${suspect.address}`);
           }
-        } catch {
-          // advisory only — never fails the run
+        } catch (err) {
+          log(`ticket: inbound-transfer check unavailable (${err.message}) — advisory only`);
         }
       }
     }
