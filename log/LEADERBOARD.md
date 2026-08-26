@@ -1,16 +1,17 @@
 # RAKE — Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-08-26T19:15:01.091Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-08-26T23:21:32.732Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
-| VELVET `0xbf927b84…` | 75.2% | $63,529 | $47,788 | 50491117 |
-| NVDAc `0xb2000000…` | 71.5% | $267,386 | $191,305 | 50486964 |
-| STONKEX `0x5ab000ff…` | 40.4% | $53,601 | $21,672 | 50491129 |
-| DRB `0x3ec2156d…` | 26.8% | $71,196 | $19,094 | 50491104 |
+| VELVET `0xbf927b84…` | 87.9% | $34,378 | $30,212 | 50498527 |
+| NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
+| TIBBIR `0xa4a2e2ca…` | 53.8% | $78,760 | $42,356 | 50498558 |
+| STONKEX `0x5ab000ff…` | 15.1% | $59,143 | $8,907 | 50498509 |
 | KTA `0xc0634090…` | 8.1% | $38,433 | $3,118 | 50491167 |
 | BSTONK `0x0f61edbf…` | 2.5% | $7,283 | $182 | 50486956 |
-| Basecat `0xb2000000…` | 0.4% | $11,612 | $49 | 50491110 |
+| Basecat `0xb2000000…` | 0.3% | $42,661 | $108 | 50498505 |
+| DRB `0x3ec2156d…` | 0% | $21,708 | $1 | 50498501 |
 
 ## Self-check — does a high rake predict anything?
 
