@@ -29,15 +29,31 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
     const fromBlock = BigInt(tape.window.fromBlock);
     const toBlock = BigInt(tape.window.toBlock);
 
-    log('locating pool creation block…');
-    const creationBlock = await findCreationBlock(tape.pool, toBlock);
-    log(`pool deployed at block ${creationBlock}`);
+    // v4 pools are not contracts — creation is anchored from Dexscreener's
+    // pairCreatedAt via Base's fixed 2s block time (small safety margin, scan forward).
+    let creationBlock = null;
+    if (tape.ctx.isV4) {
+      if (tape.pairCreatedAt) {
+        const toTimeMs = Date.parse(tape.window.toTime);
+        creationBlock = toBlock - BigInt(Math.ceil((toTimeMs - tape.pairCreatedAt) / 2000)) - 300n;
+        if (creationBlock < 1n) creationBlock = 1n;
+        log(`v4 pool — creation anchored from pairCreatedAt at ~block ${creationBlock}`);
+      } else {
+        log('v4 pool without pairCreatedAt — first-block cohort disabled for this run');
+      }
+    } else {
+      log('locating pool creation block…');
+      creationBlock = await findCreationBlock(tape.pool, toBlock);
+      log(`pool deployed at block ${creationBlock}`);
+    }
 
     const [firstBlock, lp, repeat, initialLp] = await Promise.all([
-      firstBlockCohort({ pool: tape.pool, creationBlock, log }),
-      lpCohort({ pool: tape.pool, fromBlock, toBlock }),
+      creationBlock === null
+        ? { wallets: new Set(), found: 0, complete: false }
+        : firstBlockCohort({ ctx: tape.ctx, creationBlock, log }),
+      lpCohort({ ctx: tape.ctx, fromBlock, toBlock }),
       repeatCohort({ ctx: tape.ctx, fromBlock, toBlock, log }),
-      initialLpEoa({ pool: tape.pool, creationBlock }),
+      initialLpEoa({ ctx: tape.ctx, creationBlock }),
     ]);
 
     const sellerTotals = {};

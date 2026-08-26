@@ -12,25 +12,26 @@
 
 ## What it does
 
-Paste a Base token (optionally your wallet too). RAKE reconstructs a bounded window of the pool's **real `Swap` events**, attributes every sell to the human behind it (`tx.from`, never the router), prices every swap **from its own quote leg**, and classifies each seller by mechanical rules:
+Paste a Base token (optionally your wallet too). RAKE reconstructs a bounded window of the pool's **real `Swap` events**, attributes every sell to the human behind it (the **UserOp sender** for ERC-4337 bundles, `tx.from` otherwise — never the router, never the bundler), prices every swap **from its own quote leg at its execution hour**, and classifies each seller by mechanical rules:
 
 | cohort | rule |
 |---|---|
-| `first-block` | EOA behind one of the first 50 swaps after the pool was deployed |
+| `first-block` | wallet behind one of the first 50 swaps after the pool was deployed |
 | `deployer-funded` | seller whose **first inbound transfer ever** came from the initial-LP wallet or a first-block wallet |
+| `cluster` | sold alongside ≥1 other seller first-funded by the same **low-degree** wallet (one operator's fleet); funders with ≥1000 lifetime outgoing transfers are exchange/disperse infrastructure and never count |
 | `lp` | minted or burned liquidity in this pool in-window (plus the pool itself) |
 | `repeat` | also sold in the previous window of equal length |
 | `unlabeled` | everyone else |
 
-**The rake** = share of USD that entered the pool which left through the first four cohorts. It also detects **funding clusters** — groups of sellers first-funded by the same wallet (one operator's fleet) — and, with your wallet, prints **your ticket**: what the house sold within ±40 seconds of each of your buys.
+**The rake** = share of USD that entered the pool which left through the first five cohorts. It also detects **funding clusters** — groups of sellers first-funded by the same wallet (one operator's fleet) — and, with your wallet, prints **your ticket**: what the house sold within ±40 seconds of each of your buys.
 
 Then the analyst (Claude Opus 5) reads the deterministic report, optionally spends a small budget of funding walks on wallets the engine flagged, and writes the diagnosis. **The model never produces a number** — every figure traces to an onchain log, a transaction, or a Dexscreener read, and the whole sequence streams as a live trace.
 
 ## Honesty rules
 
 - Thin window → `TOO THIN`. Undecodable pool → `UNREADABLE`. No priceable quote → `UNPRICEABLE`. Never estimated.
-- Sellers are `tx.from` — routers and aggregators are never blamed for their users' trades, and never credited either.
-- USD comes from each swap's own WETH/USDC leg at execution, not a spot ticker.
+- Sellers are humans, not plumbing: ERC-4337 bundles resolve to the **UserOp sender** (billing the bundler would be naming the mailman for the letter); everything else is `tx.from`. Routers and aggregators are never blamed for their users' trades, and never credited either.
+- USD comes from each swap's own WETH/USDC leg at execution, priced at that hour's WETH/USD close (GeckoTerminal); if the hourly series is unavailable, a single current print is used and the receipt says so.
 - The hourly public log ([log/LEADERBOARD.md](log/LEADERBOARD.md)) self-checks: 12 hours after each event it records whether price actually fell — and publishes the split **even if high rake turns out not to predict anything**.
 
 ## Run it
@@ -60,8 +61,13 @@ No keys at all? The deterministic engine (tape, first-block, lp, repeat, rake %)
 
 ```
 src/tape.js      bounded swap tape: chunked eth_getLogs (RPC failover), per-log topic0
-                 decoder (UniV2 / Solidly / UniV3+Slipstream / PancakeV3), quote-leg USD,
-                 tx.from attribution
+                 decoder (UniV2 / Solidly / UniV3+Slipstream / PancakeV3 / UniV4), quote-leg
+                 USD at execution hour. V4 pools are 32-byte ids on the PoolManager
+                 singleton: logs filter by poolId topic, orientation is verified
+                 empirically against the pair price (no token0() exists to ask)
+src/attribute.js the human behind each log: UserOp sender for ERC-4337 bundles
+                 (EntryPoint v0.6/0.7/0.8), tx.from otherwise
+src/price.js     hourly WETH/USD closes for execution-hour pricing
 src/cohorts.js   creation block (binary-searched eth_getCode), first-50-swaps cohort,
                  LP cohort, repeat cohort, funding cohort + clusters, rake computation
 src/alchemy.js   alchemy_getAssetTransfers funding walks (native ETH leaves no logs —

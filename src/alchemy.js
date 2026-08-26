@@ -13,15 +13,21 @@ export const fundingEnabled = () => Boolean(alchemyRpcUrl());
 async function alchemyRequest(method, params) {
   const url = alchemyRpcUrl();
   if (!url) throw new Error('ALCHEMY_API_KEY not set');
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: reqId++, method, params }),
-  });
-  if (!res.ok) throw new Error(`Alchemy HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(`Alchemy: ${json.error.message}`);
-  return json.result;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: reqId++, method, params }),
+    });
+    if (res.status === 429 && attempt < 3) {
+      await new Promise((r) => setTimeout(r, 1200 * (attempt + 1))); // burst limit — back off and retry
+      continue;
+    }
+    if (!res.ok) throw new Error(`Alchemy HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(`Alchemy: ${json.error.message}`);
+    return json.result;
+  }
 }
 
 // First inbound value transfer (ETH external/internal or ERC-20) ever received
@@ -47,6 +53,23 @@ export async function firstFunder(address) {
     : null;
   cache.set(key, out);
   return out;
+}
+
+// Lifetime outgoing transfer count, capped at 1000 — enough to separate an operator
+// wallet (tens of transfers) from exchange hot wallets and disperse bots that fund
+// thousands of unrelated addresses.
+export async function outgoingTransferCount(address) {
+  const result = await alchemyRequest('alchemy_getAssetTransfers', [
+    {
+      fromAddress: address,
+      category: ['external', 'erc20'],
+      order: 'asc',
+      maxCount: '0x3e8',
+      excludeZeroValue: true,
+      fromBlock: '0x0',
+    },
+  ]);
+  return result?.transfers?.length ?? 0;
 }
 
 // Bounded, cached funding walk over a set of wallets with limited concurrency.

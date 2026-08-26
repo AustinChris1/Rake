@@ -17,7 +17,8 @@ export async function fetchPairs(token) {
 export function selectPool(pairs, { pairAddress } = {}) {
   let candidates = pairs.filter((p) => {
     const q = QUOTE_TOKENS[p.quoteToken?.address?.toLowerCase()];
-    return q && p.pairAddress;
+    // 40-hex = pool contract; 64-hex = Uniswap v4 pool id. Anything else is unreadable.
+    return q && /^0x([0-9a-fA-F]{40}|[0-9a-fA-F]{64})$/.test(p.pairAddress ?? '');
   });
   if (pairAddress) {
     candidates = candidates.filter(

@@ -46,6 +46,7 @@ const Tx = ({ h }) => (
 const TAG_STYLES = {
   'first-block': 'text-loss-deep border-loss-deep',
   'deployer-funded': 'text-loss-deep border-loss-deep',
+  cluster: 'text-[#8a3d6e] border-[#8a3d6e]',
   lp: 'text-gold-600 border-gold-600',
   repeat: 'text-[#4a5f8a] border-[#4a5f8a]',
   unlabeled: 'text-ink-soft border-ink-soft',
@@ -74,7 +75,7 @@ export default function Receipt({ report }) {
     pct == null ? 'text-gold-600' : isDrain || pct >= 50 ? 'text-loss' : pct < 20 ? 'text-win' : 'text-gold-600';
 
   const cohortRows = [];
-  for (const name of ['first-block', 'deployer-funded', 'lp', 'repeat', 'unlabeled']) {
+  for (const name of ['first-block', 'deployer-funded', 'cluster', 'lp', 'repeat', 'unlabeled']) {
     const c = rake?.cohorts?.[name];
     if (!c) continue;
     for (const w of c.walletList.slice(0, name === 'unlabeled' ? 5 : 8)) {
@@ -105,7 +106,7 @@ export default function Receipt({ report }) {
           The rake — {tape.tokenSymbol} · {tape.dex} · {tape.window.hours}h
         </h2>
         <p className="mt-3 text-[13px] text-ink-soft">
-          pool <A href={addrUrl(tape.pool)}>{short(tape.pool)}</A> · {tape.window.fromTime.slice(0, 16).replace('T', ' ')} →{' '}
+          pool <A href={tape.poolUrl ?? addrUrl(tape.pool)}>{short(tape.pool)}</A> · {tape.window.fromTime.slice(0, 16).replace('T', ' ')} →{' '}
           {tape.window.toTime.slice(11, 16)} UTC · blocks {tape.window.fromBlock}–{tape.window.toBlock}
         </p>
         <div className={`my-3 font-display text-[clamp(52px,9vw,92px)] font-black leading-none ${pctColor}`}>
@@ -127,6 +128,7 @@ export default function Receipt({ report }) {
           <span><b className="block text-[15px] text-ink">{usd(tape.totals.usdIn)}</b> in · {tape.totals.uniqueBuyers} buyers</span>
           <span><b className="block text-[15px] text-ink">{usd(tape.totals.usdOut)}</b> out · {tape.totals.uniqueSellers} sellers</span>
           <span><b className="block text-[15px] text-ink">{String(rake.meta.deployerFunded)}</b> funding walks</span>
+          <span><b className="block text-[15px] text-ink">{tape.quote.pricing ?? 'single print'}</b> USD pricing</span>
         </div>
       </motion.section>
 
@@ -177,7 +179,12 @@ export default function Receipt({ report }) {
               funder <A href={addrUrl(cl.funder)}>{short(cl.funder)}</A> first-funded <b className="text-ink">{cl.size}</b> of this
               window's sellers: {cl.members.slice(0, 6).map((m, i) => (
                 <span key={m.wallet}>{i > 0 && ', '}<A href={addrUrl(m.wallet)}>{short(m.wallet)}</A></span>
-              ))}{cl.size > 6 ? '…' : ''}
+              ))}{cl.size > 6 ? '…' : ''}{' '}
+              {cl.infra ? (
+                <em>— high-degree funder ({cl.funderOutgoing ?? '?'}+ lifetime transfers: exchange or disperse infrastructure, NOT counted as house)</em>
+              ) : (
+                <b className="text-[#8a3d6e]">— low-degree funder ({cl.funderOutgoing} lifetime transfers): counted as house, cohort "cluster"</b>
+              )}
             </p>
           ))}
         </motion.section>

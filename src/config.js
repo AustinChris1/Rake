@@ -16,6 +16,9 @@ export const QUOTE_TOKENS = {
   '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf': { symbol: 'cbBTC', stable: false },
 };
 
+// Uniswap v4 singleton on Base: pools are 32-byte ids inside this contract, not contracts.
+export const V4_POOL_MANAGER = '0x498581fF718922c3f8e6A244956aF099B2652b2b';
+
 export const BASE_BLOCK_TIME_S = 2; // Base mainnet: fixed 2s block time
 export const BLOCKS_PER_HOUR = 1800n;
 

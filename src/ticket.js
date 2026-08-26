@@ -8,11 +8,16 @@ export function buildTicket(tape, rake, wallet) {
   const w = wallet.toLowerCase();
   const mine = tape.swaps.filter((s) => s.trader === w);
   if (mine.length === 0) {
-    return { status: 'NOT_IN_WINDOW', wallet: w, reason: 'This wallet made no swaps in this pool during the window.' };
+    return {
+      status: 'NOT_IN_WINDOW',
+      wallet: w,
+      reason:
+        'This wallet made no swaps in THIS pool during THIS window. A longer window may catch it; a buy routed through one of the token\'s other pools will not appear in this pool\'s tape.',
+    };
   }
 
   const houseWallets = new Set();
-  for (const key of ['first-block', 'deployer-funded', 'lp', 'repeat']) {
+  for (const key of ['first-block', 'deployer-funded', 'cluster', 'lp', 'repeat']) {
     for (const entry of rake.cohorts[key]?.walletList ?? []) houseWallets.add(entry.wallet);
   }
 

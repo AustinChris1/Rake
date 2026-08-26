@@ -56,6 +56,27 @@ const DEFS = [
     },
   },
   {
+    // Uniswap v4 singleton: topic1 is the pool id. Amounts are USER-perspective
+    // (positive = user received from the pool) — the inverse of v3. Verified
+    // on-chain: a sell (token Transfer TO PoolManager) logs a negative token delta.
+    kind: 'uniswap-v4',
+    signature: 'Swap(bytes32,address,int128,int128,uint160,uint128,int24,uint24)',
+    abi: {
+      type: 'event',
+      name: 'Swap',
+      inputs: [
+        { name: 'id', type: 'bytes32', indexed: true },
+        { name: 'sender', type: 'address', indexed: true },
+        { name: 'amount0', type: 'int128', indexed: false },
+        { name: 'amount1', type: 'int128', indexed: false },
+        { name: 'sqrtPriceX96', type: 'uint160', indexed: false },
+        { name: 'liquidity', type: 'uint128', indexed: false },
+        { name: 'tick', type: 'int24', indexed: false },
+        { name: 'fee', type: 'uint24', indexed: false },
+      ],
+    },
+  },
+  {
     kind: 'pancake-v3',
     signature: 'Swap(address,address,int256,int256,uint160,uint128,int24,uint128,uint128)',
     abi: {
@@ -98,8 +119,10 @@ export function normalizeSwap(log, tokenIsToken0) {
     quoteOut = tokenIsToken0 ? a1Out : a0Out;
   } else {
     // v3-style: amounts are pool-perspective deltas; positive = pool received.
-    const tokenDelta = tokenIsToken0 ? args.amount0 : args.amount1;
-    const quoteDelta = tokenIsToken0 ? args.amount1 : args.amount0;
+    // v4 amounts are user-perspective — negate to get pool-perspective.
+    const sign = def.kind === 'uniswap-v4' ? -1n : 1n;
+    const tokenDelta = sign * (tokenIsToken0 ? args.amount0 : args.amount1);
+    const quoteDelta = sign * (tokenIsToken0 ? args.amount1 : args.amount0);
     tokenIn = tokenDelta > 0n ? tokenDelta : 0n;
     tokenOut = tokenDelta < 0n ? -tokenDelta : 0n;
     quoteIn = quoteDelta > 0n ? quoteDelta : 0n;

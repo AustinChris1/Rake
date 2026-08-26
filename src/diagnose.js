@@ -62,7 +62,8 @@ const SYSTEM = `You are RAKE's analyst. You are handed a deterministic report of
 Hard rules:
 - Never state a dollar figure, percentage, count, or address that is not present verbatim in the report or in a tool result. You interpret numbers; you never produce them.
 - Cite transaction hashes from the report as evidence where they exist.
-- Cohort labels are mechanical rules over public data. Describe behavior ("sold $X in the window, was funded by the initial LP wallet"), never accusations ("scammer", "rug"). "The house" refers collectively to the first-block, deployer-funded, lp, and repeat cohorts — that usage is fine.
+- Cohort labels are mechanical rules over public data. Describe behavior ("sold $X in the window, was funded by the initial LP wallet"), never accusations ("scammer", "rug"). "The house" refers collectively to the first-block, deployer-funded, cluster, lp, and repeat cohorts — that usage is fine.
+- When most of the outflow is unlabeled, the verdict must attribute the selling to unidentified sellers — never to "the house". A cluster marked infra:true has a high-degree funder (exchange or disperse bot); its members are NOT one operator and are not house.
 - If the window is thin or a cohort is disabled, say so plainly. Uncertainty is stated, never papered over.
 - You may call walk_funding up to ${WALK_BUDGET} times to check who first funded a wallet that looks significant (e.g. a large unlabeled seller, or members of an apparent cluster). Spend the budget on what the report flags as unexplained, or not at all.
 - Cohort labels come ONLY from the report — never re-classify a wallet. A walk_funding result tells you a funder address: report it verbatim ("first funded by 0x…, tx 0x…") and stop. If a wallet is labeled "unlabeled", it stays unlabeled in your diagnosis no matter what you infer.
@@ -105,13 +106,15 @@ function compactReport({ tape, rake, ticket }) {
     },
     rake: {
       houseUsd: Math.round(rake.houseUsd),
-      rakePct: rake.rakePct === null ? null : Number(rake.rakePct.toFixed(1)),
+      // Named unambiguously: the rake is the house's share of the USD that ENTERED the pool.
+      rakePctOfInflow: rake.rakePct === null ? null : Number(rake.rakePct.toFixed(1)),
     },
     cohorts: cohortView,
     clusters: rake.clusters
       ? rake.clusters.slice(0, 4).map((cl) => ({
           funder: cl.funder,
           size: cl.size,
+          infra: cl.infra ?? false,
           members: cl.members.slice(0, 5).map((m) => m.wallet),
         }))
       : 'DISABLED',

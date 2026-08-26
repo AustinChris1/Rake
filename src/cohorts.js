@@ -7,10 +7,21 @@
 // asset-transfer tracing (e.g. Alchemy) and is DISABLED until a key is configured.
 
 import { keccak256, toBytes } from 'viem';
-import { withFailover, getLogsChunked, getTransactionSafe, mapLimit } from './rpc.js';
+import { withFailover, getLogsChunked } from './rpc.js';
 import { fetchAttributedSwaps } from './tape.js';
 import { ALL_SWAP_TOPICS } from './decode.js';
-import { fundingEnabled, walkFunders } from './alchemy.js';
+import { buildTxAttribution, traderForLog, ENTRYPOINTS } from './attribute.js';
+import { fundingEnabled, walkFunders, outgoingTransferCount } from './alchemy.js';
+import { V4_POOL_MANAGER } from './config.js';
+
+// Protocol plumbing can show up as a wallet's "first funder" (e.g. a fresh wallet
+// whose first inbound asset is the token it bought, delivered by the v4 singleton).
+// Plumbing is never an operator — it neither clusters nor marks deployer funding.
+const PLUMBING = new Set([
+  V4_POOL_MANAGER.toLowerCase(),
+  ...ENTRYPOINTS,
+  '0x0000000000000000000000000000000000000000',
+]);
 
 const FUNDING_MIN_USD = 25; // funding walks only for sellers above this, bounded
 const FUNDING_MAX_WALLETS = 120;
@@ -26,7 +37,12 @@ const LP_TOPICS = [
   'Burn(address,address,uint256,uint256)', // Solidly
   'Mint(address,address,int24,int24,uint128,uint256,uint256)', // v3-style
   'Burn(address,int24,int24,uint128,uint256,uint256)', // v3-style
+  'ModifyLiquidity(bytes32,address,int24,int24,int256,bytes32)', // Uni v4 singleton (topic1 = pool id)
 ].map((s) => keccak256(toBytes(s)));
+
+// Swap/LP log query for a pool: a v4 pool is queried on the PoolManager with its
+// pool id as topic1; a real pool contract is queried directly.
+const poolTopics = (ctx, topicList) => (ctx.topicFilter ? [topicList, ctx.topicFilter] : [topicList]);
 
 // Binary-search the block where the pool contract's code first exists (~26 eth_getCode calls).
 export async function findCreationBlock(pool, latest) {
@@ -44,12 +60,12 @@ export async function findCreationBlock(pool, latest) {
 // EOAs behind the first N swaps after pool creation.
 // Raw logs are collected first and sliced to N — only those txs are attributed,
 // so a pool with a thousand launch-hour swaps still costs ~50 tx lookups.
-export async function firstBlockCohort({ pool, creationBlock, log = () => {} }) {
+export async function firstBlockCohort({ ctx, creationBlock, log = () => {} }) {
   let from = creationBlock;
   const logs = [];
   while (logs.length < FIRST_SWAPS_N && from < creationBlock + FIRST_SCAN_MAX_BLOCKS) {
     const to = from + 1799n;
-    const chunk = await getLogsChunked({ address: pool, topics: [ALL_SWAP_TOPICS], fromBlock: from, toBlock: to });
+    const chunk = await getLogsChunked({ address: ctx.logAddress, topics: poolTopics(ctx, ALL_SWAP_TOPICS), fromBlock: from, toBlock: to });
     logs.push(...chunk);
     from = to + 1n;
   }
@@ -61,11 +77,12 @@ export async function firstBlockCohort({ pool, creationBlock, log = () => {} }) 
   const firstN = logs.slice(0, FIRST_SWAPS_N);
   const hashes = [...new Set(firstN.map((l) => l.transactionHash))];
   log(`first-swaps scan: ${firstN.length} swaps, ${hashes.length} txs to attribute`);
+  const meta = await buildTxAttribution(hashes);
   const wallets = new Set();
-  await mapLimit(hashes, 6, async (hash) => {
-    const tx = await getTransactionSafe(hash);
-    if (tx) wallets.add(tx.from.toLowerCase());
-  });
+  for (const l of firstN) {
+    const t = traderForLog(meta, l.transactionHash, parseInt(l.logIndex, 16));
+    if (t !== 'unattributed') wallets.add(t);
+  }
   return {
     wallets,
     scannedTo: Number(from),
@@ -75,14 +92,15 @@ export async function firstBlockCohort({ pool, creationBlock, log = () => {} }) 
 }
 
 // EOAs that touched liquidity in-window (mint or burn on this pool), plus the pool address itself.
-export async function lpCohort({ pool, fromBlock, toBlock }) {
-  const logs = await getLogsChunked({ address: pool, topics: [LP_TOPICS], fromBlock, toBlock });
-  const wallets = new Set([pool.toLowerCase()]);
+export async function lpCohort({ ctx, fromBlock, toBlock }) {
+  const logs = await getLogsChunked({ address: ctx.logAddress, topics: poolTopics(ctx, LP_TOPICS), fromBlock, toBlock });
+  const wallets = new Set([ctx.pool.toLowerCase(), ctx.logAddress.toLowerCase()]);
   const hashes = [...new Set(logs.map((l) => l.transactionHash))];
-  await mapLimit(hashes, 6, async (hash) => {
-    const tx = await getTransactionSafe(hash);
-    if (tx) wallets.add(tx.from.toLowerCase());
-  });
+  const meta = await buildTxAttribution(hashes);
+  for (const l of logs) {
+    const t = traderForLog(meta, l.transactionHash, parseInt(l.logIndex, 16));
+    if (t !== 'unattributed') wallets.add(t);
+  }
   return { wallets, events: logs.length };
 }
 
@@ -99,17 +117,19 @@ export async function repeatCohort({ ctx, fromBlock, toBlock, log = () => {} }) 
 }
 
 // The EOA that provided the pool's initial liquidity — "holder #0" for rug analysis.
-export async function initialLpEoa({ pool, creationBlock }) {
+export async function initialLpEoa({ ctx, creationBlock }) {
+  if (creationBlock === null) return null;
   const logs = await getLogsChunked({
-    address: pool,
-    topics: [LP_TOPICS],
+    address: ctx.logAddress,
+    topics: poolTopics(ctx, LP_TOPICS),
     fromBlock: creationBlock,
     toBlock: creationBlock + 5000n,
   });
   if (logs.length === 0) return null;
   logs.sort((a, b) => parseInt(a.blockNumber, 16) - parseInt(b.blockNumber, 16));
-  const tx = await getTransactionSafe(logs[0].transactionHash);
-  return tx ? tx.from.toLowerCase() : null;
+  const meta = await buildTxAttribution([logs[0].transactionHash]);
+  const t = traderForLog(meta, logs[0].transactionHash, parseInt(logs[0].logIndex, 16));
+  return t === 'unattributed' ? null : t;
 }
 
 // Funding annotations for the window's sellers (requires an Alchemy key):
@@ -136,7 +156,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
   const deployerFunded = new Set();
   const byFunder = {};
   for (const [wallet, info] of Object.entries(funderOf)) {
-    if (!info) continue;
+    if (!info || PLUMBING.has(info.funder)) continue;
     if (houseFunders.has(info.funder)) deployerFunded.add(wallet);
     (byFunder[info.funder] ??= []).push({ wallet, txHash: info.txHash });
   }
@@ -145,17 +165,35 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
     .map(([funder, members]) => ({ funder, members, size: members.length }))
     .sort((a, b) => b.size - a.size);
 
-  return { enabled: true, initialLp, funderOf, deployerFunded, clusters, walked: targets.length };
+  // Infrastructure guard: a shared first-funder only implies one operator when the
+  // funder is a low-degree wallet. Exchange hot wallets and disperse bots fund
+  // thousands of unrelated addresses — accusing their users would be a smear.
+  const INFRA_DEGREE = 1000;
+  for (const cl of clusters) {
+    try {
+      cl.funderOutgoing = await outgoingTransferCount(cl.funder); // capped at 1000
+      cl.infra = cl.funderOutgoing >= INFRA_DEGREE;
+    } catch {
+      cl.funderOutgoing = null;
+      cl.infra = true; // unknown degree → never accuse
+    }
+  }
+  const clusterHouse = new Set(
+    clusters.filter((c) => !c.infra).flatMap((c) => c.members.map((m) => m.wallet)),
+  );
+
+  return { enabled: true, initialLp, funderOf, deployerFunded, clusters, clusterHouse, walked: targets.length };
 }
 
 // Classify every seller in the tape and compute the rake.
 // Priority when a wallet is in several cohorts:
-// first-block > deployer-funded > lp > repeat.
+// first-block > deployer-funded > cluster > lp > repeat.
 export function computeRake(tape, { firstBlock, lp, repeat, funding = { enabled: false } }) {
   const classify = (wallet) => {
     if (wallet === 'unattributed') return 'unlabeled'; // pruned tx — never cohorted
     if (firstBlock.wallets.has(wallet)) return 'first-block';
     if (funding.enabled && funding.deployerFunded.has(wallet)) return 'deployer-funded';
+    if (funding.enabled && funding.clusterHouse?.has(wallet)) return 'cluster';
     if (lp.wallets.has(wallet)) return 'lp';
     if (repeat.wallets.has(wallet)) return 'repeat';
     return 'unlabeled';
@@ -178,7 +216,7 @@ export function computeRake(tape, { firstBlock, lp, repeat, funding = { enabled:
       .sort((a, b) => b.usd - a.usd);
   }
 
-  const houseUsd = ['first-block', 'deployer-funded', 'lp', 'repeat'].reduce(
+  const houseUsd = ['first-block', 'deployer-funded', 'cluster', 'lp', 'repeat'].reduce(
     (t, k) => t + (cohorts[k]?.usd ?? 0),
     0,
   );

@@ -3,7 +3,7 @@
 // Scroll-revealed explainer: the cohort rules and the honesty rules.
 
 import { motion } from 'framer-motion';
-import { Zap, GitBranch, Droplets, Repeat2, Scale } from 'lucide-react';
+import { Zap, GitBranch, Network, Droplets, Repeat2, Scale } from 'lucide-react';
 
 const COHORTS = [
   {
@@ -15,6 +15,11 @@ const COHORTS = [
     icon: GitBranch,
     name: 'deployer-funded',
     rule: 'Seller whose first inbound transfer ever came from the initial-LP wallet or a first-block wallet.',
+  },
+  {
+    icon: Network,
+    name: 'cluster',
+    rule: 'Sold alongside ≥1 other seller first-funded by the same low-degree wallet. One operator, many hands. High-degree funders (exchanges, disperse bots) never count.',
   },
   {
     icon: Droplets,
@@ -47,9 +52,9 @@ export default function HowItWorks() {
         transition={{ delay: 0.15, duration: 0.5 }}
         className="mt-3 max-w-[68ch] text-cream-dim"
       >
-        Every sell in the window is attributed to the human behind it — <code className="text-gold-400">tx.from</code>, never the
-        router — and classified by mechanical rules over public data. The rake is the share of USD entering the pool that left
-        through these four cohorts:
+        Every sell in the window is attributed to the human behind it — the UserOp sender for ERC-4337 bundles,{' '}
+        <code className="text-gold-400">tx.from</code> otherwise; never the router, never the bundler — and classified by
+        mechanical rules over public data. The rake is the share of USD entering the pool that left through these five cohorts:
       </motion.p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -82,8 +87,8 @@ export default function HowItWorks() {
         <p className="mt-2 max-w-[75ch] text-[13px] leading-relaxed text-cream-dim">
           No model produces a number — the analyst interprets the deterministic report and spends a bounded budget of funding
           walks, nothing more. Thin windows read <code className="text-gold-400">TOO THIN</code>; unreadable pools read{' '}
-          <code className="text-gold-400">UNPRICEABLE</code>. USD comes from each swap's own WETH/USDC leg at execution, not a
-          spot ticker. Never estimated.
+          <code className="text-gold-400">UNPRICEABLE</code>. USD comes from each swap's own WETH/USDC leg at execution, priced
+          at that hour's WETH/USD close — single current print as fallback, and the receipt states which method priced it.
         </p>
       </motion.div>
     </section>
