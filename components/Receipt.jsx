@@ -197,7 +197,29 @@ export default function Receipt({ report }) {
             <Ticket className="h-4 w-4" /> Your ticket{ticket.wallet ? <> — <A href={addrUrl(ticket.wallet)}>{short(ticket.wallet)}</A></> : null}
           </h2>
           {ticket.status === 'NOT_IN_WINDOW' ? (
-            <p className="mt-3 text-[13px] text-ink-soft">{ticket.reason}</p>
+            <>
+              <p className="mt-3 text-[13px] text-ink-soft">{ticket.reason}</p>
+              {ticket.sameSymbolSuspect && (
+                <div className="mt-3 border-l-2 border-loss pl-3 text-[13px]">
+                  <p className="font-semibold text-loss-deep">
+                    ⚠ Same ticker, different contract — you may be looking at the wrong token.
+                  </p>
+                  <p className="mt-1 text-ink-soft">
+                    This wallet received <b className="text-ink">{Math.round(ticket.sameSymbolSuspect.value ?? 0).toLocaleString()}</b> of a token
+                    also named "{tape.tokenSymbol}" at{' '}
+                    <A href={addrUrl(ticket.sameSymbolSuspect.address)}>{short(ticket.sameSymbolSuspect.address)}</A>
+                    {ticket.sameSymbolSuspect.ts ? ` on ${ticket.sameSymbolSuspect.ts.slice(0, 16).replace('T', ' ')} UTC` : ''} (
+                    <A href={txUrl(ticket.sameSymbolSuspect.txHash)}>receipt</A>).{' '}
+                    <a
+                      className="font-semibold text-loss-deep underline"
+                      href={`/?token=${ticket.sameSymbolSuspect.address}&hours=${tape.window.hours}&wallet=${ticket.wallet}`}
+                    >
+                      Rake that contract instead →
+                    </a>
+                  </p>
+                </div>
+              )}
+            </>
           ) : (
             <>
               <p className="mt-3 max-w-[62ch]">

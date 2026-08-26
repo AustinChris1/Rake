@@ -13,6 +13,7 @@ import {
 } from './cohorts.js';
 import { buildTicket } from './ticket.js';
 import { diagnose } from './diagnose.js';
+import { fundingEnabled, recentInboundTransfers } from './alchemy.js';
 
 export async function runRake(token, { hours = 4, pairAddress, wallet, llm = true, onProgress = () => {} } = {}) {
   const log = (msg) => onProgress(msg);
@@ -74,6 +75,26 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
     if (wallet) {
       log(`building ticket for ${wallet}…`);
       ticket = buildTicket(tape, rake, wallet);
+      // Empty ticket + a same-symbol token at a DIFFERENT contract in the wallet's
+      // recent inbound transfers = the classic wrong-CA trap. Say so, with receipts.
+      if (ticket.status === 'NOT_IN_WINDOW' && fundingEnabled() && tape.tokenSymbol) {
+        try {
+          const inbound = await recentInboundTransfers(wallet);
+          const suspect = inbound.find(
+            (t) =>
+              t.asset &&
+              t.address &&
+              t.asset.toLowerCase() === tape.tokenSymbol.toLowerCase() &&
+              t.address !== tape.token,
+          );
+          if (suspect) {
+            ticket.sameSymbolSuspect = suspect;
+            log(`⚠ wallet holds a DIFFERENT token also named "${tape.tokenSymbol}" — ${suspect.address}`);
+          }
+        } catch {
+          // advisory only — never fails the run
+        }
+      }
     }
 
     if (llm && tape.status === 'OK') {

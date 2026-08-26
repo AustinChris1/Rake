@@ -55,6 +55,28 @@ export async function firstFunder(address) {
   return out;
 }
 
+// Recent inbound ERC-20 transfers to a wallet (newest first) — used to catch
+// same-symbol/different-contract confusion when a ticket comes back empty.
+export async function recentInboundTransfers(wallet, maxCount = 20) {
+  const result = await alchemyRequest('alchemy_getAssetTransfers', [
+    {
+      toAddress: wallet,
+      category: ['erc20'],
+      order: 'desc',
+      maxCount: '0x' + maxCount.toString(16),
+      excludeZeroValue: true,
+      withMetadata: true,
+    },
+  ]);
+  return (result?.transfers ?? []).map((t) => ({
+    asset: t.asset ?? null,
+    address: t.rawContract?.address?.toLowerCase() ?? null,
+    value: t.value ?? null,
+    ts: t.metadata?.blockTimestamp ?? null,
+    txHash: t.hash,
+  }));
+}
+
 // Lifetime outgoing transfer count, capped at 1000 — enough to separate an operator
 // wallet (tens of transfers) from exchange hot wallets and disperse bots that fund
 // thousands of unrelated addresses.

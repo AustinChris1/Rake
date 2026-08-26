@@ -72,6 +72,11 @@ if (ticket) {
   console.log('YOUR TICKET');
   if (ticket.status === 'NOT_IN_WINDOW') {
     console.log(`  ${ticket.reason}`);
+    if (ticket.sameSymbolSuspect) {
+      const s = ticket.sameSymbolSuspect;
+      console.log(`  ⚠ SAME TICKER, DIFFERENT CONTRACT: this wallet received ${Math.round(s.value ?? 0)} "${tape.tokenSymbol}" at ${s.address}${s.ts ? ' on ' + s.ts : ''} (tx ${s.txHash})`);
+      console.log(`    You may be raking the wrong token — run RAKE on that address instead.`);
+    }
   } else {
     console.log(`  buys ${usd(ticket.buys.usd)} (${ticket.buys.count} tx), sells ${usd(ticket.sells.usd)} (${ticket.sells.count} tx)`);
     for (const b of ticket.buyEvents) {
