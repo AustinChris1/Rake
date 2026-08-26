@@ -1,0 +1,54 @@
+name: RAKE hourly leaderboard
+
+# Rakes Base's trending tokens every hour, appends events to log/events.jsonl,
+# regenerates log/LEADERBOARD.md, and completes 12h self-checks — committed back
+# to the repo so the log is public, timestamped, and tamper-evident.
+
+on:
+  schedule:
+    - cron: '7 * * * *' # hourly at :07 (GitHub cron can drift a few minutes)
+  workflow_dispatch: {} # manual "Run workflow" button for the first test
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rake-leaderboard
+  cancel-in-progress: false
+
+jobs:
+  rake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Rake trending tokens + self-check
+        run: node scripts/leaderboard.js
+        env:
+          # Optional but recommended: enables deployer-funded + cluster cohorts.
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+
+      - name: Commit the log
+        run: |
+          git config user.name "rake-agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add log/
+          if git diff --staged --quiet; then
+            echo "no new events this hour"
+          else
+            git commit -m "rake: hourly log $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin ${GITHUB_REF_NAME}
+            git push
+          fi
