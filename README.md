@@ -82,7 +82,7 @@ const receipt = await (await paidFetch('https://<rake>/api/deeppass?token=0x…'
 Set `X402_PAY_TO` (your Base wallet) to arm it. Unset, the route runs free and
 labels itself `x-rake-deeppass: dev-mode-unpaid` - dev mode is honest, never silent.
 
-**Deploy:** the app is Vercel-ready - import the repo on [vercel.com](https://vercel.com), add `ALCHEMY_API_KEY` and `ANTHROPIC_API_KEY`/`GROQ_API_KEY` as environment variables, deploy. The engine runs inside the `/api/rake` route (SSE, `maxDuration: 300` - Fluid compute on the free tier covers it).
+**Deploy:** the app is Vercel-ready - import the repo on [vercel.com](https://vercel.com), add `ALCHEMY_API_KEY`, `ANTHROPIC_API_KEY`/`GROQ_API_KEY`, and `X402_PAY_TO` (arms the paid deep pass) as environment variables, deploy. The engine runs inside the `/api/rake` route (SSE, `maxDuration: 300` - Fluid compute on the free tier covers it). The Telegram watch (`pnpm watch`) runs anywhere with a `TELEGRAM_BOT_TOKEN`; the hourly leaderboard runs itself via GitHub Actions.
 
 No keys at all? The deterministic engine (tape, first-block, lp, repeat, rake %) runs entirely on free public RPCs - funding walks and the analyst switch off cleanly.
 
@@ -106,8 +106,9 @@ src/ticket.js    your buys vs. house sells within ±20 blocks - window-framed, c
 src/diagnose.js  Claude Opus 5 analyst via the SDK tool runner; one tool (walk_funding,
                  budget 4); hard rule: interprets numbers, never produces them
 src/report.js    the pipeline both surfaces share
-app/             Next.js frontend (Tailwind, Framer Motion) + /api/rake SSE route
-scripts/         hourly leaderboard + 12h self-check
+app/             Next.js frontend (Tailwind, Framer Motion), /api/rake SSE route,
+                 /api/deeppass x402 route
+scripts/         hourly leaderboard + 12h self-check (GitHub Action), Telegram watch bot
 ```
 
 Built on Base for the **Orion Builder Hackathon**.
