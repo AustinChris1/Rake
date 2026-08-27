@@ -1,4 +1,4 @@
-// RAKE — trending Base tokens for the one-click chips (GeckoTerminal, free API).
+// Trending Base tokens for the one-click chips (GeckoTerminal).
 
 export const runtime = 'nodejs';
 export const revalidate = 120;

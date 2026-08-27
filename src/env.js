@@ -1,9 +1,9 @@
-// RAKE — environment. Loads .env if present (Node native), exposes typed getters.
+// RAKE - environment. Loads .env if present (Node native), exposes typed getters.
 
 try {
   process.loadEnvFile();
 } catch {
-  // no .env file — env vars may still come from the shell
+  // no .env file - env vars may still come from the shell
 }
 
 export const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || null;

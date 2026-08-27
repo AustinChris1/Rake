@@ -1,4 +1,4 @@
-// The RAKE mark: a croupier's rake mid-pull, dragging chips off the table —
+// The RAKE mark: a croupier's rake mid-pull, dragging chips off the table -
 // the house collecting its cut of the pot.
 export default function Mark({ className = 'h-10 w-10' }) {
   return (

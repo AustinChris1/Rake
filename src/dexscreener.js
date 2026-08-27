@@ -1,6 +1,4 @@
-// RAKE — pool discovery via Dexscreener's free token-pairs API (no key, 300 rpm).
-// The quote token's USD price is derived from the pair's own priceUsd/priceNative,
-// so every USD figure traces to the same source as the pool itself.
+// Pool discovery via Dexscreener's free API; quote USD derives from the pair's own priceUsd/priceNative.
 
 import { DEXSCREENER_TOKEN_PAIRS, QUOTE_TOKENS } from './config.js';
 
@@ -12,8 +10,7 @@ export async function fetchPairs(token) {
   return pairs.filter((p) => p.chainId === 'base');
 }
 
-// Pick the pool to read: priceable quote token, highest 24h volume.
-// Returns { pair, quote, quoteUsd, status } — status 'OK' or 'UNPRICEABLE'.
+// Pick the pool: priceable quote token, highest 24h volume; 'OK' or 'UNPRICEABLE'.
 export function selectPool(pairs, { pairAddress } = {}) {
   let candidates = pairs.filter((p) => {
     const q = QUOTE_TOKENS[p.quoteToken?.address?.toLowerCase()];

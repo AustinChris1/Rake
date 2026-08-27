@@ -24,7 +24,7 @@ const COHORTS = [
   {
     icon: Droplets,
     name: 'lp',
-    rule: 'Minted or burned liquidity in this pool in-window — plus the pool itself.',
+    rule: 'Minted or burned liquidity in this pool in-window - plus the pool itself.',
   },
   {
     icon: Repeat2,
@@ -52,8 +52,8 @@ export default function HowItWorks() {
         transition={{ delay: 0.15, duration: 0.5 }}
         className="mt-3 max-w-[68ch] text-cream-dim"
       >
-        Every sell in the window is attributed to the human behind it — the UserOp sender for ERC-4337 bundles,{' '}
-        <code className="text-gold-400">tx.from</code> otherwise; never the router, never the bundler — and classified by
+        Every sell in the window is attributed to the human behind it - the UserOp sender for ERC-4337 bundles,{' '}
+        <code className="text-gold-400">tx.from</code> otherwise; never the router, never the bundler - and classified by
         mechanical rules over public data. The rake is the share of USD entering the pool that left through these five cohorts:
       </motion.p>
 
@@ -85,10 +85,10 @@ export default function HowItWorks() {
         <Scale className="h-5 w-5 text-gold-400" />
         <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-gold-400">House rules</h3>
         <p className="mt-2 max-w-[75ch] text-[13px] leading-relaxed text-cream-dim">
-          No model produces a number — the analyst interprets the deterministic report and spends a bounded budget of funding
+          No model produces a number - the analyst interprets the deterministic report and spends a bounded budget of funding
           walks, nothing more. Thin windows read <code className="text-gold-400">TOO THIN</code>; unreadable pools read{' '}
           <code className="text-gold-400">UNPRICEABLE</code>. USD comes from each swap's own WETH/USDC leg at execution, priced
-          at that hour's WETH/USD close — single current print as fallback, and the receipt states which method priced it.
+          at that hour's WETH/USD close - single current print as fallback, and the receipt states which method priced it.
         </p>
       </motion.div>
     </section>

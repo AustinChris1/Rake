@@ -1,8 +1,4 @@
-// RAKE — who is the human behind a log?
-// Normal tx: tx.from. ERC-4337 bundle (tx.to = EntryPoint): tx.from is the BUNDLER,
-// not the trader — the UserOperationEvent that follows the log in the receipt names
-// the smart account that actually acted. Billing the bundler would be naming the
-// mailman for the letter.
+// Who is the human behind a log: UserOp sender for ERC-4337 bundles, tx.from otherwise.
 
 import { keccak256, toBytes } from 'viem';
 import { withFailover, getTransactionSafe, mapLimit } from './rpc.js';
@@ -17,8 +13,7 @@ const USEROP_EVENT_TOPIC = keccak256(
   toBytes('UserOperationEvent(bytes32,address,address,uint256,bool,uint256,uint256)'),
 );
 
-// Fetch attribution metadata for a set of tx hashes. For EntryPoint txs the receipt
-// is also read to collect the bundle's UserOperationEvents (logIndex + sender).
+// Attribution metadata per tx hash; EntryPoint txs also collect UserOperationEvents.
 export async function buildTxAttribution(txHashes, { log = () => {} } = {}) {
   const meta = {};
   let unattributed = 0;
@@ -42,18 +37,17 @@ export async function buildTxAttribution(txHashes, { log = () => {} } = {}) {
           .map((l) => ({ logIndex: Number(l.logIndex), sender: ('0x' + l.topics[2].slice(26)).toLowerCase() }))
           .sort((a, b) => a.logIndex - b.logIndex);
       } catch {
-        // receipt unavailable — traderForLog falls back to tx.from
+        // receipt unavailable - traderForLog falls back to tx.from
       }
     }
     meta[hash] = m;
   });
-  if (bundles > 0) log(`${bundles} ERC-4337 bundle txs — attributing to UserOp senders, not bundlers`);
-  if (unattributed > 0) log(`${unattributed} txs unattributable (pruned on all RPCs) — kept in totals, excluded from cohorts`);
+  if (bundles > 0) log(`${bundles} ERC-4337 bundle txs - attributing to UserOp senders, not bundlers`);
+  if (unattributed > 0) log(`${unattributed} txs unattributable (pruned on all RPCs) - kept in totals, excluded from cohorts`);
   return meta;
 }
 
-// The trader behind one specific log. In a 4337 bundle, each UserOp's logs precede
-// its UserOperationEvent, so the log's owner is the first UserOp event after it.
+// A UserOp's logs precede its UserOperationEvent, so the log's owner is the first event after it.
 export function traderForLog(meta, txHash, logIndex) {
   const m = meta[txHash];
   if (!m) return 'unattributed';

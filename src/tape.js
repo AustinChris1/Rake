@@ -1,6 +1,4 @@
-// RAKE — the tape: every swap in a bounded window of a token's top Base pool,
-// decoded, attributed to the human behind it (UserOp sender for 4337 bundles,
-// tx.from otherwise), and priced in USD from its own quote leg at execution hour.
+// The tape: every swap in a bounded window, decoded, human-attributed, priced from its own quote leg.
 
 import { withFailover, getLogsChunked } from './rpc.js';
 import { fetchPairs, selectPool } from './dexscreener.js';
@@ -24,10 +22,7 @@ function toUsd(rawAmount, decimals, unitUsd) {
 // A v4 "pool" is a 32-byte id inside the PoolManager singleton, not a contract.
 const isV4Pool = (pool) => pool.length === 66;
 
-// v4 orientation cannot come from token0() (no pool contract). It is resolved
-// empirically: decode sample swaps under both hypotheses and keep the one whose
-// implied price matches Dexscreener's priceNative — the hypotheses differ by many
-// orders of magnitude, so the test is unambiguous. Refuses to guess on no match.
+// v4 has no token0(): orientation is resolved by testing both hypotheses against the pair price; refuses to guess.
 function resolveV4Orientation(rawLogs, { tokenDecimals, quoteDecimals, priceNative }) {
   const samples = rawLogs.slice(-5);
   const median = (xs) => xs.slice().sort((a, b) => a - b)[Math.floor(xs.length / 2)];
@@ -48,10 +43,7 @@ function resolveV4Orientation(rawLogs, { tokenDecimals, quoteDecimals, priceNati
   return null;
 }
 
-// Fetch, decode, price, and EOA-attribute every swap in [fromBlock, toBlock] for one pool.
-// Reused for the main window, the previous window (repeat cohort), and the first-swaps scan.
-// ctx.tokenIsToken0 === null means "v4, unresolved" — resolved here on first use and
-// written back into ctx so cohort passes reuse it.
+// Fetch, decode, price, and attribute every swap in range. ctx.tokenIsToken0 === null means v4 unresolved: it is resolved here and written back into ctx.
 export async function fetchAttributedSwaps(ctx) {
   const { fromBlock, toBlock, log = () => {} } = ctx;
   const rawLogs = await getLogsChunked({
@@ -64,7 +56,7 @@ export async function fetchAttributedSwaps(ctx) {
 
   if (ctx.tokenIsToken0 === null && rawLogs.length > 0) {
     ctx.tokenIsToken0 = resolveV4Orientation(rawLogs, ctx);
-    if (ctx.tokenIsToken0 === null) throw new Error('v4 pool orientation could not be verified against the pair price — refusing to guess.');
+    if (ctx.tokenIsToken0 === null) throw new Error('v4 pool orientation could not be verified against the pair price - refusing to guess.');
     log(`v4 orientation: token is currency${ctx.tokenIsToken0 ? '0' : '1'} (verified against pair price)`);
   }
 
@@ -115,7 +107,7 @@ export async function buildTape(token, { hours = 4, pairAddress, log = () => {} 
   const toBlock = latest;
 
   // 3. Pool orientation + decimals (onchain reads, cached per run).
-  // v4 pools have no contract to ask — orientation resolves empirically below.
+  // v4 pools have no contract to ask - orientation resolves empirically below.
   const v4 = isV4Pool(pool);
   const [token0, tokenDecimals, quoteDecimals] = await Promise.all([
     v4 ? null : withFailover((c) => c.readContract({ address: pool, abi: POOL_ABI, functionName: 'token0' })),
@@ -152,7 +144,7 @@ export async function buildTape(token, { hours = 4, pairAddress, log = () => {} 
 
   // 5b. Reprice WETH-quoted swaps at their execution hour's WETH/USD close, so a
   //     long window doesn't get one end-of-window print. Falls back to the single
-  //     current print — and the receipt says which method priced it.
+  //     current print - and the receipt says which method priced it.
   let pricing = quote.stable ? 'stable quote ($1)' : 'single current print';
   if (!quote.stable && quote.symbol === 'WETH') {
     const closes = await wethHourlyCloses(Math.max(6, hours + 4), quoteUsd);

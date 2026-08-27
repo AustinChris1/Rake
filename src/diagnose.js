@@ -1,7 +1,4 @@
-// RAKE — the analyst. The model NEVER produces a number: every figure in its
-// diagnosis must already exist in the deterministic report it is handed.
-// It may spend a small budget of funding walks to chase what the engine flagged,
-// and each walk streams into the trace. No key → diagnosis is skipped, not faked.
+// The analyst: interprets the deterministic report, never produces a number. No key = skipped, not faked.
 
 import Anthropic from '@anthropic-ai/sdk';
 import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
@@ -24,7 +21,7 @@ const WALK_SCHEMA = {
 const WALK_DESCRIPTION =
   'Look up the first inbound value transfer ever received by a Base wallet: who funded it, in which transaction. Use on wallets the report flags but does not explain.';
 
-// Shared walk executor — both providers run the identical tool with the identical budget.
+// Shared walk executor - both providers run the identical tool with the identical budget.
 function makeWalker(onProgress) {
   let used = 0;
   const walks = [];
@@ -35,7 +32,7 @@ function makeWalker(onProgress) {
       if (!input?.wallet) return 'Invalid input: wallet is required.';
       if (!fundingEnabled()) return 'Funding walks are disabled (no ALCHEMY_API_KEY).';
       const key = input.wallet.toLowerCase();
-      if (seen.has(key)) return seen.get(key) + ' (already walked — do not walk this wallet again)';
+      if (seen.has(key)) return seen.get(key) + ' (already walked - do not walk this wallet again)';
       if (used >= WALK_BUDGET) return 'Walk budget exhausted.';
       used++;
       onProgress(`analyst: walking funding of ${input.wallet} (${input.why ?? ''})`);
@@ -62,18 +59,18 @@ const SYSTEM = `You are RAKE's analyst. You are handed a deterministic report of
 Hard rules:
 - Never state a dollar figure, percentage, count, or address that is not present verbatim in the report or in a tool result. You interpret numbers; you never produce them.
 - Cite transaction hashes from the report as evidence where they exist.
-- Cohort labels are mechanical rules over public data. Describe behavior ("sold $X in the window, was funded by the initial LP wallet"), never accusations ("scammer", "rug"). "The house" refers collectively to the first-block, deployer-funded, cluster, lp, and repeat cohorts — that usage is fine.
-- When most of the outflow is unlabeled, the verdict must attribute the selling to unidentified sellers — never to "the house". A cluster marked infra:true has a high-degree funder (exchange or disperse bot); its members are NOT one operator and are not house.
+- Cohort labels are mechanical rules over public data. Describe behavior ("sold $X in the window, was funded by the initial LP wallet"), never accusations ("scammer", "rug"). "The house" refers collectively to the first-block, deployer-funded, cluster, lp, and repeat cohorts - that usage is fine.
+- When most of the outflow is unlabeled, the verdict must attribute the selling to unidentified sellers - never to "the house". A cluster marked infra:true has a high-degree funder (exchange or disperse bot); its members are NOT one operator and are not house.
 - If the window is thin or a cohort is disabled, say so plainly. Uncertainty is stated, never papered over.
 - You may call walk_funding up to ${WALK_BUDGET} times to check who first funded a wallet that looks significant (e.g. a large unlabeled seller, or members of an apparent cluster). Spend the budget on what the report flags as unexplained, or not at all.
-- Cohort labels come ONLY from the report — never re-classify a wallet. A walk_funding result tells you a funder address: report it verbatim ("first funded by 0x…, tx 0x…") and stop. If a wallet is labeled "unlabeled", it stays unlabeled in your diagnosis no matter what you infer.
+- Cohort labels come ONLY from the report - never re-classify a wallet. A walk_funding result tells you a funder address: report it verbatim ("first funded by 0x…, tx 0x…") and stop. If a wallet is labeled "unlabeled", it stays unlabeled in your diagnosis no matter what you infer.
 - Do not derive new aggregates (sums, percentages, ratios) from the report's numbers. Quote the figures as given.
 
 Output exactly these sections, plain text, total under 350 words:
-VERDICT — one sentence on what this window was: a market, a payout, or too thin to call.
-THE TAPE — what the flows show, 2-4 sentences.
-WHO GOT PAID — the notable wallets and what is known about them, with tx hashes.
-READ BEFORE APING — 1-3 sentences of practical caution grounded only in the evidence above.`;
+VERDICT - one sentence on what this window was: a market, a payout, or too thin to call.
+THE TAPE - what the flows show, 2-4 sentences.
+WHO GOT PAID - the notable wallets and what is known about them, with tx hashes.
+READ BEFORE APING - 1-3 sentences of practical caution grounded only in the evidence above.`;
 
 // Compact the report: the model reads a summary, not 500 raw swaps.
 function compactReport({ tape, rake, ticket }) {
@@ -123,8 +120,7 @@ function compactReport({ tape, rake, ticket }) {
   };
 }
 
-// Provider dispatch: Claude when an Anthropic key is present (strongest tool
-// discipline), Groq as fallback. Same prompt, same walker, same rules either way.
+// Provider dispatch: Claude preferred, Groq fallback; same prompt, walker, and rules.
 export async function diagnose({ tape, rake, ticket, onProgress = () => {} }) {
   // Minified JSON: Groq's free tier is tokens-per-minute bound; whitespace is spend.
   const userMsg = `Here is the deterministic RAKE report. Diagnose it.\n\n${JSON.stringify(compactReport({ tape, rake, ticket }))}`;
@@ -137,7 +133,7 @@ export async function diagnose({ tape, rake, ticket, onProgress = () => {} }) {
   if (GROQ_API_KEY) return diagnoseGroq(userMsg, onProgress);
   return {
     status: 'LLM_DISABLED',
-    reason: 'Analyst offline — set ANTHROPIC_API_KEY (preferred) or GROQ_API_KEY to enable the diagnosis.',
+    reason: 'Analyst offline - set ANTHROPIC_API_KEY (preferred) or GROQ_API_KEY to enable the diagnosis.',
   };
 }
 
@@ -219,7 +215,7 @@ async function diagnoseGroq(userMsg, onProgress) {
         const text = await res.text();
         const suggested = Number(text.match(/try again in (\d+(?:\.\d+)?)s/)?.[1] ?? 20);
         const waitS = Math.min(70, Math.ceil(suggested) + 2);
-        onProgress(`analyst: Groq rate limit — retrying in ${waitS}s`);
+        onProgress(`analyst: Groq rate limit - retrying in ${waitS}s`);
         await new Promise((r) => setTimeout(r, waitS * 1000));
         i--; // the retry does not consume a tool-loop iteration
         continue;

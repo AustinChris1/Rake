@@ -1,5 +1,4 @@
-// RAKE — swap event decoding. The decoder for each log is chosen by its topic0,
-// so a pool never has to be classified ahead of time: the event signature is the truth.
+// Swap decoding: the decoder for each log is chosen by its topic0, never by pool type.
 
 import { keccak256, toBytes, decodeEventLog } from 'viem';
 
@@ -57,7 +56,7 @@ const DEFS = [
   },
   {
     // Uniswap v4 singleton: topic1 is the pool id. Amounts are USER-perspective
-    // (positive = user received from the pool) — the inverse of v3. Verified
+    // (positive = user received from the pool) - the inverse of v3. Verified
     // on-chain: a sell (token Transfer TO PoolManager) logs a negative token delta.
     kind: 'uniswap-v4',
     signature: 'Swap(bytes32,address,int128,int128,uint160,uint128,int24,uint24)',
@@ -103,8 +102,7 @@ export const TOPIC_MAP = Object.fromEntries(
 
 export const ALL_SWAP_TOPICS = Object.keys(TOPIC_MAP);
 
-// Decode a raw log into a normalized swap from the target token's perspective:
-// { side: 'buy'|'sell', tokenAmount, quoteAmount } (raw bigints), or null if not a swap topic.
+// Normalize a raw log to { side, tokenAmount, quoteAmount } from the token's perspective.
 export function normalizeSwap(log, tokenIsToken0) {
   const def = TOPIC_MAP[log.topics[0]];
   if (!def) return null;
@@ -119,7 +117,7 @@ export function normalizeSwap(log, tokenIsToken0) {
     quoteOut = tokenIsToken0 ? a1Out : a0Out;
   } else {
     // v3-style: amounts are pool-perspective deltas; positive = pool received.
-    // v4 amounts are user-perspective — negate to get pool-perspective.
+    // v4 amounts are user-perspective - negate to get pool-perspective.
     const sign = def.kind === 'uniswap-v4' ? -1n : 1n;
     const tokenDelta = sign * (tokenIsToken0 ? args.amount0 : args.amount1);
     const quoteDelta = sign * (tokenIsToken0 ? args.amount1 : args.amount0);

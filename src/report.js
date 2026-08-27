@@ -1,5 +1,4 @@
-// RAKE — the full pipeline, shared by the CLI and the web server.
-// Emits progress lines through `onProgress` so both surfaces stream the same trace.
+// The full pipeline, shared by CLI and web; both stream the same trace via onProgress.
 
 import { buildTape } from './tape.js';
 import {
@@ -15,7 +14,11 @@ import { buildTicket } from './ticket.js';
 import { diagnose } from './diagnose.js';
 import { fundingEnabled, recentInboundTransfers } from './alchemy.js';
 
-export async function runRake(token, { hours = 4, pairAddress, wallet, llm = true, onProgress = () => {} } = {}) {
+// fundingCap: top sellers walked (default fits the free tier). deep: adds two-hop cluster funder walks.
+export async function runRake(
+  token,
+  { hours = 4, pairAddress, wallet, llm = true, fundingCap, deep = false, onProgress = () => {} } = {},
+) {
   const log = (msg) => onProgress(msg);
 
   log(`resolving top Base pool for ${token}…`);
@@ -30,7 +33,7 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
     const fromBlock = BigInt(tape.window.fromBlock);
     const toBlock = BigInt(tape.window.toBlock);
 
-    // v4 pools are not contracts — creation is anchored from Dexscreener's
+    // v4 pools are not contracts - creation is anchored from Dexscreener's
     // pairCreatedAt via Base's fixed 2s block time (small safety margin, scan forward).
     let creationBlock = null;
     if (tape.ctx.isV4) {
@@ -38,9 +41,9 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
         const toTimeMs = Date.parse(tape.window.toTime);
         creationBlock = toBlock - BigInt(Math.ceil((toTimeMs - tape.pairCreatedAt) / 2000)) - 300n;
         if (creationBlock < 1n) creationBlock = 1n;
-        log(`v4 pool — creation anchored from pairCreatedAt at ~block ${creationBlock}`);
+        log(`v4 pool - creation anchored from pairCreatedAt at ~block ${creationBlock}`);
       } else {
-        log('v4 pool without pairCreatedAt — first-block cohort disabled for this run');
+        log('v4 pool without pairCreatedAt - first-block cohort disabled for this run');
       }
     } else {
       log('locating pool creation block…');
@@ -66,9 +69,23 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
       sellers: Object.entries(sellerTotals).map(([wallet, usd]) => ({ wallet, usd })),
       initialLp,
       firstBlockWallets: firstBlock.wallets,
+      cap: fundingCap,
       log,
     });
-    if (!funding.enabled) log('funding walks disabled (no ALCHEMY_API_KEY) — deployer-funded cohort skipped');
+    if (deep && funding.enabled) {
+      // Two-hop: who funded the fleet funders themselves - often the actual operator.
+      const { firstFunder } = await import('./alchemy.js');
+      for (const cl of funding.clusters ?? []) {
+        if (cl.infra) continue;
+        try {
+          log(`deep pass: walking funder-of-funder for ${cl.funder}…`);
+          cl.funderFundedBy = await firstFunder(cl.funder);
+        } catch {
+          cl.funderFundedBy = null;
+        }
+      }
+    }
+    if (!funding.enabled) log('funding walks disabled (no ALCHEMY_API_KEY) - deployer-funded cohort skipped');
 
     rake = computeRake(tape, { firstBlock, lp, repeat, funding });
 
@@ -90,7 +107,7 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
           );
           if (received.length) {
             ticket.receivedThisToken = received.slice(0, 5);
-            log(`ticket: wallet DID receive ${tape.tokenSymbol} in-window via ${received.length} transfer(s) — outside this pool's tape`);
+            log(`ticket: wallet DID receive ${tape.tokenSymbol} in-window via ${received.length} transfer(s) - outside this pool's tape`);
           }
           const suspect = inbound.find(
             (t) =>
@@ -101,10 +118,10 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
           );
           if (suspect && !received.length) {
             ticket.sameSymbolSuspect = suspect;
-            log(`⚠ wallet holds a DIFFERENT token also named "${tape.tokenSymbol}" — ${suspect.address}`);
+            log(`⚠ wallet holds a DIFFERENT token also named "${tape.tokenSymbol}" - ${suspect.address}`);
           }
         } catch (err) {
-          log(`ticket: inbound-transfer check unavailable (${err.message}) — advisory only`);
+          log(`ticket: inbound-transfer check unavailable (${err.message}) - advisory only`);
         }
       }
     }
@@ -114,7 +131,7 @@ export async function runRake(token, { hours = 4, pairAddress, wallet, llm = tru
     }
   }
 
-  // The full swap list stays in the receipt file; strip nothing — receipts are the product.
+  // The full swap list stays in the receipt file; strip nothing - receipts are the product.
   return {
     status: tape.status,
     generatedAt: new Date().toISOString(),

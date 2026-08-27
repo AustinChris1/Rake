@@ -1,13 +1,13 @@
 'use client';
 
-// The receipt — every section animates in on scroll; every figure links to Basescan.
+// The receipt - every section animates in on scroll; every figure links to Basescan.
 
 import { useEffect, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import { AlertTriangle, Download, ExternalLink, Network, Ticket, Bot } from 'lucide-react';
 import { usd, short, addrUrl, txUrl } from '../lib/format.js';
 
-// Results mount after a run completes — animate on mount, never gate on scroll.
+// Results mount after a run completes - animate on mount, never gate on scroll.
 const reveal = {
   initial: { opacity: 0, y: 28 },
   animate: { opacity: 1, y: 0 },
@@ -61,7 +61,7 @@ export default function Receipt({ report }) {
   if (report.status === 'UNPRICEABLE') {
     return (
       <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-6 font-display tracking-wider text-gold-400">
-        <AlertTriangle className="mr-2 inline h-5 w-5" /> UNPRICEABLE — {report.reason}
+        <AlertTriangle className="mr-2 inline h-5 w-5" /> UNPRICEABLE - {report.reason}
       </motion.div>
     );
   }
@@ -96,14 +96,14 @@ export default function Receipt({ report }) {
     <div className="grid gap-10">
       {report.status === 'TOO_THIN' && (
         <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-5 font-display text-sm tracking-wider text-gold-400">
-          TOO THIN — only {tape.totals?.swaps ?? 0} swaps in this window. Numbers below are shown but not judged.
+          TOO THIN - only {tape.totals?.swaps ?? 0} swaps in this window. Numbers below are shown but not judged.
         </motion.div>
       )}
 
       {/* headline */}
       <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
         <h2 className="border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-          The rake — {tape.tokenSymbol} · {tape.dex} · {tape.window.hours}h
+          The rake - {tape.tokenSymbol} · {tape.dex} · {tape.window.hours}h
         </h2>
         <p className="mt-3 text-[13px] text-ink-soft">
           pool <A href={tape.poolUrl ?? addrUrl(tape.pool)}>{short(tape.pool)}</A> · {tape.window.fromTime.slice(0, 16).replace('T', ' ')} →{' '}
@@ -114,11 +114,11 @@ export default function Receipt({ report }) {
         </div>
         <p className="max-w-[62ch]">
           Of <strong>{usd(rake.usdIn)}</strong> that entered this pool, <strong>{usd(rake.houseUsd)}</strong> left through house
-          cohorts — wallets that were there first, funded each other, provide the liquidity, or sell every window.
+          cohorts - wallets that were there first, funded each other, provide the liquidity, or sell every window.
         </p>
         {isDrain && (
           <p className="mt-2 max-w-[62ch] border-l-2 border-loss pl-3 text-[13px] text-loss-deep">
-            Drain window: sellers took out {usd(rake.usdOut)} against {usd(rake.usdIn)} of buying —{' '}
+            Drain window: sellers took out {usd(rake.usdOut)} against {usd(rake.usdIn)} of buying -{' '}
             {drainRatio >= 10 ? Math.round(drainRatio) : drainRatio.toFixed(1)}× the inflow. A low rake % here only means the
             engine could not tie the sellers to the house, not that the exit was safe.
           </p>
@@ -172,7 +172,7 @@ export default function Receipt({ report }) {
       {rake.clusters?.length > 0 && (
         <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
           <h2 className="flex items-center gap-2 border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-            <Network className="h-4 w-4" /> Funding clusters — one funder, many sellers
+            <Network className="h-4 w-4" /> Funding clusters - one funder, many sellers
           </h2>
           {rake.clusters.slice(0, 5).map((cl) => (
             <p key={cl.funder} className="mt-3 text-[13px] text-ink-soft">
@@ -181,9 +181,9 @@ export default function Receipt({ report }) {
                 <span key={m.wallet}>{i > 0 && ', '}<A href={addrUrl(m.wallet)}>{short(m.wallet)}</A></span>
               ))}{cl.size > 6 ? '…' : ''}{' '}
               {cl.infra ? (
-                <em>— {cl.infraReason ?? 'infrastructure funder'}: NOT counted as house</em>
+                <em>- {cl.infraReason ?? 'infrastructure funder'}: NOT counted as house</em>
               ) : (
-                <b className="text-[#8a3d6e]">— low-degree EOA funder ({cl.funderOutgoing} lifetime transfers): counted as house, cohort "cluster"</b>
+                <b className="text-[#8a3d6e]">- low-degree EOA funder ({cl.funderOutgoing} lifetime transfers): counted as house, cohort "cluster"</b>
               )}
             </p>
           ))}
@@ -194,7 +194,7 @@ export default function Receipt({ report }) {
       {ticket && (
         <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
           <h2 className="flex items-center gap-2 border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-            <Ticket className="h-4 w-4" /> Your ticket{ticket.wallet ? <> — <A href={addrUrl(ticket.wallet)}>{short(ticket.wallet)}</A></> : null}
+            <Ticket className="h-4 w-4" /> Your ticket{ticket.wallet ? <> - <A href={addrUrl(ticket.wallet)}>{short(ticket.wallet)}</A></> : null}
           </h2>
           {ticket.status === 'NOT_IN_WINDOW' ? (
             <>
@@ -202,24 +202,24 @@ export default function Receipt({ report }) {
               {ticket.receivedThisToken?.length > 0 && (
                 <div className="mt-3 border-l-2 border-gold-600 pl-3 text-[13px]">
                   <p className="font-semibold text-ink">
-                    But this wallet DID receive {tape.tokenSymbol} inside this window — through a different pool.
+                    But this wallet DID receive {tape.tokenSymbol} inside this window - through a different pool.
                   </p>
                   {ticket.receivedThisToken.map((t) => (
                     <p key={t.txHash} className="mt-1 text-ink-soft">
                       {Math.round(t.value ?? 0).toLocaleString()} {tape.tokenSymbol}
-                      {t.ts ? ` on ${t.ts.slice(0, 16).replace('T', ' ')} UTC` : ''} — <A href={txUrl(t.txHash)}>receipt</A>
+                      {t.ts ? ` on ${t.ts.slice(0, 16).replace('T', ' ')} UTC` : ''} - <A href={txUrl(t.txHash)}>receipt</A>
                     </p>
                   ))}
                   <p className="mt-1 text-ink-soft">
                     This tape reads the token's top-volume pool only; the router filled these swaps elsewhere. The receipts
-                    above are the proof of your buy — it just never touched this pool.
+                    above are the proof of your buy - it just never touched this pool.
                   </p>
                 </div>
               )}
               {ticket.sameSymbolSuspect && (
                 <div className="mt-3 border-l-2 border-loss pl-3 text-[13px]">
                   <p className="font-semibold text-loss-deep">
-                    ⚠ Same ticker, different contract — you may be looking at the wrong token.
+                    ⚠ Same ticker, different contract - you may be looking at the wrong token.
                   </p>
                   <p className="mt-1 text-ink-soft">
                     This wallet received <b className="text-ink">{Math.round(ticket.sameSymbolSuspect.value ?? 0).toLocaleString()}</b> of a token
@@ -265,7 +265,7 @@ export default function Receipt({ report }) {
                                   <A href={addrUrl(s.wallet)}>{short(s.wallet)}</A> {usd(s.usd)} <Tx h={s.txHash} />
                                 </div>
                               ))
-                            : '—'}
+                            : '-'}
                         </td>
                       </tr>
                     ))}
@@ -281,7 +281,7 @@ export default function Receipt({ report }) {
       {diagnosis && (
         <motion.section {...reveal} className="rounded-xl border border-noir-line bg-noir-900 px-7 py-6">
           <h2 className="flex items-center gap-2 font-display text-[13px] font-bold uppercase tracking-[0.18em] text-gold-400">
-            <Bot className="h-4 w-4" /> Analyst note{diagnosis.status === 'OK' ? ` — ${diagnosis.model}` : ''}
+            <Bot className="h-4 w-4" /> Analyst note{diagnosis.status === 'OK' ? ` - ${diagnosis.model}` : ''}
           </h2>
           {diagnosis.status === 'OK' ? (
             <>
@@ -293,7 +293,7 @@ export default function Receipt({ report }) {
               )}
             </>
           ) : (
-            <p className="mt-4 text-sm text-cream-dim">{diagnosis.status} — {diagnosis.reason}</p>
+            <p className="mt-4 text-sm text-cream-dim">{diagnosis.status} - {diagnosis.reason}</p>
           )}
         </motion.section>
       )}

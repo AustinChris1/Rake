@@ -4,15 +4,15 @@
 
 <h1 align="center">RAKE</h1>
 
-<p align="center"><em>Every candle has a house. Rake names who got paid — from the actual swaps, in dollars.</em></p>
+<p align="center"><em>Every candle has a house. Rake names who got paid - from the actual swaps, in dollars.</em></p>
 
 ---
 
-**The mark:** a croupier's rake mid-pull, dragging chips off the table — the house collecting its cut of the pot.
+**The mark:** a croupier's rake mid-pull, dragging chips off the table - the house collecting its cut of the pot.
 
 ## What it does
 
-Paste a Base token (optionally your wallet too). RAKE reconstructs a bounded window of the pool's **real `Swap` events**, attributes every sell to the human behind it (the **UserOp sender** for ERC-4337 bundles, `tx.from` otherwise — never the router, never the bundler), prices every swap **from its own quote leg at its execution hour**, and classifies each seller by mechanical rules:
+Paste a Base token (optionally your wallet too). RAKE reconstructs a bounded window of the pool's **real `Swap` events**, attributes every sell to the human behind it (the **UserOp sender** for ERC-4337 bundles, `tx.from` otherwise - never the router, never the bundler), prices every swap **from its own quote leg at its execution hour**, and classifies each seller by mechanical rules:
 
 | cohort | rule |
 |---|---|
@@ -23,16 +23,16 @@ Paste a Base token (optionally your wallet too). RAKE reconstructs a bounded win
 | `repeat` | also sold in the previous window of equal length |
 | `unlabeled` | everyone else |
 
-**The rake** = share of USD that entered the pool which left through the first five cohorts. It also detects **funding clusters** — groups of sellers first-funded by the same wallet (one operator's fleet) — and, with your wallet, prints **your ticket**: what the house sold within ±40 seconds of each of your buys.
+**The rake** = share of USD that entered the pool which left through the first five cohorts. It also detects **funding clusters** - groups of sellers first-funded by the same wallet (one operator's fleet) - and, with your wallet, prints **your ticket**: what the house sold within ±40 seconds of each of your buys.
 
-Then the analyst (Claude Opus 5) reads the deterministic report, optionally spends a small budget of funding walks on wallets the engine flagged, and writes the diagnosis. **The model never produces a number** — every figure traces to an onchain log, a transaction, or a Dexscreener read, and the whole sequence streams as a live trace.
+Then the analyst (Claude Opus 5) reads the deterministic report, optionally spends a small budget of funding walks on wallets the engine flagged, and writes the diagnosis. **The model never produces a number** - every figure traces to an onchain log, a transaction, or a Dexscreener read, and the whole sequence streams as a live trace.
 
 ## Honesty rules
 
 - Thin window → `TOO THIN`. Undecodable pool → `UNREADABLE`. No priceable quote → `UNPRICEABLE`. Never estimated.
 - Sellers are humans, not plumbing: ERC-4337 bundles resolve to the **UserOp sender** (billing the bundler would be naming the mailman for the letter); everything else is `tx.from`. Routers and aggregators are never blamed for their users' trades, and never credited either.
 - USD comes from each swap's own WETH/USDC leg at execution, priced at that hour's WETH/USD close (GeckoTerminal); if the hourly series is unavailable, a single current print is used and the receipt says so.
-- The hourly public log ([log/LEADERBOARD.md](log/LEADERBOARD.md)) self-checks: 12 hours after each event it records whether price actually fell — and publishes the split **even if high rake turns out not to predict anything**.
+- The hourly public log ([log/LEADERBOARD.md](log/LEADERBOARD.md)) self-checks: 12 hours after each event it records whether price actually fell - and publishes the split **even if high rake turns out not to predict anything**.
 
 ## Run it
 
@@ -40,7 +40,7 @@ Then the analyst (Claude Opus 5) reads the deterministic report, optionally spen
 pnpm install
 cp .env.example .env   # ALCHEMY_API_KEY (funding walks) + ANTHROPIC_API_KEY or GROQ_API_KEY (analyst)
 
-# Webapp (Next.js — dev)
+# Webapp (Next.js - dev)
 pnpm dev               # → http://localhost:3000
 
 # Webapp (production)
@@ -49,13 +49,42 @@ pnpm build && pnpm start
 # CLI
 pnpm rake 0x532f27101965dd16442e59d40670faf5ebb142e4 --hours 4 [--wallet 0x...] [--no-llm]
 
-# Hourly public log + self-check
+# Hourly public log + self-check (also runs hourly via GitHub Actions)
 pnpm leaderboard
+
+# Telegram watch - the guard. /watch 0xTOKEN [rake%] in your bot's chat.
+pnpm watch             # needs TELEGRAM_BOT_TOKEN (@BotFather) in .env
 ```
 
-**Deploy:** the app is Vercel-ready — import the repo on [vercel.com](https://vercel.com), add `ALCHEMY_API_KEY` and `ANTHROPIC_API_KEY`/`GROQ_API_KEY` as environment variables, deploy. The engine runs inside the `/api/rake` route (SSE, `maxDuration: 300` — Fluid compute on the free tier covers it).
+## The watch - RAKE as a guard
 
-No keys at all? The deterministic engine (tape, first-block, lp, repeat, rake %) runs entirely on free public RPCs — funding walks and the analyst switch off cleanly.
+Message the bot `/watch 0xTOKEN 50` and a patrol re-rakes that pool's 1h window
+every hour. The moment the rake crosses your threshold - or the window becomes a
+≥3× drain - Telegram pings you with the numbers and the receipt link. Alerts fire
+on the crossing and re-arm only after the pool calms down: a guard, not a spammer.
+`/check 0xTOKEN` rakes on demand; `/list` and `/unwatch` manage the patrol.
+
+## The deep pass (x402) - RAKE as a service for agents
+
+`GET /api/deeppass?token=0x…&hours=4` returns the deterministic receipt with
+**every** eligible seller funding-walked (not just the top 60) and **two-hop
+funding graphs** on cluster funders - who funded the fleet's funder. Payment is
+[x402](https://x402.org): the route answers `402 Payment Required`, the caller
+pays `$0.05` USDC on Base programmatically and retries with the proof - no
+account, no API key. Any agent with an x402 client can buy one answer:
+
+```js
+import { wrapFetchWithPayment } from '@x402/fetch';
+const paidFetch = wrapFetchWithPayment(fetch, walletClient);
+const receipt = await (await paidFetch('https://<rake>/api/deeppass?token=0x…')).json();
+```
+
+Set `X402_PAY_TO` (your Base wallet) to arm it. Unset, the route runs free and
+labels itself `x-rake-deeppass: dev-mode-unpaid` - dev mode is honest, never silent.
+
+**Deploy:** the app is Vercel-ready - import the repo on [vercel.com](https://vercel.com), add `ALCHEMY_API_KEY` and `ANTHROPIC_API_KEY`/`GROQ_API_KEY` as environment variables, deploy. The engine runs inside the `/api/rake` route (SSE, `maxDuration: 300` - Fluid compute on the free tier covers it).
+
+No keys at all? The deterministic engine (tape, first-block, lp, repeat, rake %) runs entirely on free public RPCs - funding walks and the analyst switch off cleanly.
 
 ## Architecture
 
@@ -70,9 +99,9 @@ src/attribute.js the human behind each log: UserOp sender for ERC-4337 bundles
 src/price.js     hourly WETH/USD closes for execution-hour pricing
 src/cohorts.js   creation block (binary-searched eth_getCode), first-50-swaps cohort,
                  LP cohort, repeat cohort, funding cohort + clusters, rake computation
-src/alchemy.js   alchemy_getAssetTransfers funding walks (native ETH leaves no logs —
+src/alchemy.js   alchemy_getAssetTransfers funding walks (native ETH leaves no logs -
                  eth_getLogs cannot answer "who funded this wallet")
-src/ticket.js    your buys vs. house sells within ±20 blocks — window-framed, causal
+src/ticket.js    your buys vs. house sells within ±20 blocks - window-framed, causal
                  claims never made
 src/diagnose.js  Claude Opus 5 analyst via the SDK tool runner; one tool (walk_funding,
                  budget 4); hard rule: interprets numbers, never produces them

@@ -1,7 +1,4 @@
-// RAKE — funding walks. Native ETH transfers emit no logs, so "who funded this
-// wallet first" cannot come from eth_getLogs. Alchemy's alchemy_getAssetTransfers
-// (external + internal categories) answers it in one call per wallet.
-// Without a key, every funding-based cohort reports DISABLED — never guessed.
+// Funding walks via alchemy_getAssetTransfers (native ETH leaves no logs). No key = DISABLED, never guessed.
 
 import { alchemyRpcUrl } from './env.js';
 
@@ -20,7 +17,7 @@ async function alchemyRequest(method, params) {
       body: JSON.stringify({ jsonrpc: '2.0', id: reqId++, method, params }),
     });
     if (res.status === 429 && attempt < 5) {
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); // burst limit — back off and retry
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); // burst limit - back off and retry
       continue;
     }
     if (!res.ok) throw new Error(`Alchemy HTTP ${res.status}: ${(await res.text()).slice(0, 140)}`);
@@ -30,12 +27,11 @@ async function alchemyRequest(method, params) {
   }
 }
 
-// First inbound value transfer (ETH external/internal or ERC-20) ever received
-// by `address` on Base: { funder, txHash, category, asset } or null if none found.
+// First inbound value transfer ever received by `address`, or null.
 export async function firstFunder(address) {
   const key = address.toLowerCase();
   if (cache.has(key)) return cache.get(key);
-  // Note: the 'internal' category is not supported on Base — external (native ETH
+  // Note: the 'internal' category is not supported on Base - external (native ETH
   // from an EOA) + erc20 cover the funding paths we can see.
   const result = await alchemyRequest('alchemy_getAssetTransfers', [
     {
@@ -55,8 +51,7 @@ export async function firstFunder(address) {
   return out;
 }
 
-// Recent inbound ERC-20 transfers to a wallet (newest first) — used to catch
-// same-symbol/different-contract confusion when a ticket comes back empty.
+// Recent inbound ERC-20 transfers, newest first; catches wrong-CA confusion on empty tickets.
 export async function recentInboundTransfers(wallet, maxCount = 20) {
   const result = await alchemyRequest('alchemy_getAssetTransfers', [
     {
@@ -77,9 +72,7 @@ export async function recentInboundTransfers(wallet, maxCount = 20) {
   }));
 }
 
-// Lifetime outgoing transfer count, capped at 1000 — enough to separate an operator
-// wallet (tens of transfers) from exchange hot wallets and disperse bots that fund
-// thousands of unrelated addresses.
+// Lifetime outgoing transfer count capped at 1000; separates operators from exchange/disperse infra.
 export async function outgoingTransferCount(address) {
   const result = await alchemyRequest('alchemy_getAssetTransfers', [
     {
@@ -94,11 +87,7 @@ export async function outgoingTransferCount(address) {
   return result?.transfers?.length ?? 0;
 }
 
-// Bounded, cached funding walk over a set of wallets with limited concurrency.
-// Failures are counted and the first error is kept — a fully-failed walk must be
-// reported as FAILED upstream, never passed off as "walked N sellers".
-// Concurrency 2: getAssetTransfers is ~150 CU and the free tier sustains ~330 CU/s —
-// two lanes ride just under the throttle instead of tripping 429 storms.
+// Bounded funding walk; failures are counted, never hidden. Concurrency 2 rides under the free tier's ~330 CU/s.
 export async function walkFunders(wallets, { concurrency = 2, onProgress = () => {} } = {}) {
   const list = [...wallets];
   const out = {};

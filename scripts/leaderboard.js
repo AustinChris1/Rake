@@ -1,7 +1,5 @@
-// RAKE — the public log. Run hourly (cron / GitHub Actions):
-// pulls Base's trending pools, rakes each over a 1h window, appends to log/events.jsonl,
-// regenerates log/LEADERBOARD.md, and self-checks old events (12h later price move).
-// The self-check is published even when it is unflattering — that is the point.
+// Hourly public log: rakes trending Base tokens, appends log/events.jsonl, regenerates
+// LEADERBOARD.md, and publishes the 12h self-check even when it is unflattering.
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import { runRake } from '../src/report.js';
@@ -72,8 +70,7 @@ for (const t of tokens) {
   }
 }
 
-// 2. Self-check: for events ≥12h old and not yet checked, record the 12h price move.
-//    Split by high-rake (≥50%) vs the rest — and publish whichever way it comes out.
+// 2. Self-check events ≥12h old; publish the high-rake vs baseline split either way.
 const all = existsSync(EVENTS)
   ? readFileSync(EVENTS, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l))
   : [];
@@ -107,7 +104,7 @@ const board = Object.values(latestBy)
 writeFileSync(
   BOARD,
   [
-    '# RAKE — Trapped-candle leaderboard (Base)',
+    '# RAKE - Trapped-candle leaderboard (Base)',
     '',
     `_Auto-generated ${new Date().toISOString()}. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._`,
     '',
@@ -115,10 +112,10 @@ writeFileSync(
     '|---|---:|---:|---:|---|',
     ...board.map((e) => `| ${e.symbol} \`${e.token.slice(0, 10)}…\` | ${e.rakePct}% | ${usd(e.usdIn)} | ${usd(e.houseUsd)} | ${e.toBlock} |`),
     '',
-    '## Self-check — does a high rake predict anything?',
+    '## Self-check - does a high rake predict anything?',
     '',
     checked.length < 10
-      ? `_${checked.length} events have completed their 12h check so far. The split below prints once there are ≥10 — and it prints whichever way it comes out._`
+      ? `_${checked.length} events have completed their 12h check so far. The split below prints once there are ≥10 - and it prints whichever way it comes out._`
       : `Of ${hi.length} high-rake events (≥50%), **${downShare(hi)}%** were down ≥30% twelve hours later. Base rate across ${lo.length} low-rake events: **${downShare(lo)}%**. ${downShare(hi) > downShare(lo) ? 'High rake preceded drawdown more often than baseline in this sample.' : '**In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.'}`,
     '',
   ].join('\n'),

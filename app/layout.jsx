@@ -13,7 +13,7 @@ const plex = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: 'RAKE — who got paid on this candle',
+  title: 'RAKE - who got paid on this candle',
   description:
     'Paste a Base token. RAKE reconstructs the real swaps, names who got paid, and prints the receipt.',
   icons: { icon: '/logo.svg' },

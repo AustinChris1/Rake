@@ -1,10 +1,4 @@
-// RAKE — cohort engine. Cohorts are rules over public data, never a model's opinion:
-//   first-block : EOAs behind the first N swaps after the pool was deployed
-//   lp          : EOAs that minted/burned liquidity in this pool, in-window, plus the pool itself
-//   repeat      : EOAs that also sold in the previous window of equal length
-//   unlabeled   : everyone else
-// The deployer-funded cohort (first inbound ETH from deployer) requires an RPC with
-// asset-transfer tracing (e.g. Alchemy) and is DISABLED until a key is configured.
+// RAKE cohort engine: mechanical rules over public data, never a model's opinion.
 
 import { keccak256, toBytes } from 'viem';
 import { withFailover, getLogsChunked } from './rpc.js';
@@ -14,24 +8,21 @@ import { buildTxAttribution, traderForLog, ENTRYPOINTS } from './attribute.js';
 import { fundingEnabled, walkFunders, outgoingTransferCount } from './alchemy.js';
 import { V4_POOL_MANAGER } from './config.js';
 
-// Protocol plumbing can show up as a wallet's "first funder" (e.g. a fresh wallet
-// whose first inbound asset is the token it bought, delivered by the v4 singleton).
-// Plumbing is never an operator — it neither clusters nor marks deployer funding.
+// Protocol plumbing is never an operator: it neither clusters nor marks deployer funding.
 const PLUMBING = new Set([
   V4_POOL_MANAGER.toLowerCase(),
   ...ENTRYPOINTS,
   '0x0000000000000000000000000000000000000000',
-  '0x4200000000000000000000000000000000000006', // WETH — wrap/unwrap flows, never an operator
+  '0x4200000000000000000000000000000000000006', // WETH - wrap/unwrap flows, never an operator
 ]);
 
 const FUNDING_MIN_USD = 25; // funding walks only for sellers above this, bounded
-const FUNDING_MAX_WALLETS = 60; // top sellers by USD — the dollars that matter, within free-tier pace
+const FUNDING_MAX_WALLETS = 60; // top sellers by USD - the dollars that matter, within free-tier pace
 
 const FIRST_SWAPS_N = 50;
 const FIRST_SCAN_MAX_BLOCKS = 200_000n; // give up the first-swaps scan after ~4.6 days of blocks
 
-// Mint/Burn signatures across Uni v2, Solidly/Aerodrome, Uni v3/Slipstream.
-// We never decode these — an LP actor is identified by the tx's EOA, so topic0 presence is enough.
+// LP event signatures across supported AMMs; topic0 presence is enough, never decoded.
 const LP_TOPICS = [
   'Mint(address,uint256,uint256)', // Uni v2 + Solidly share this one
   'Burn(address,uint256,uint256,address)', // Uni v2
@@ -41,8 +32,7 @@ const LP_TOPICS = [
   'ModifyLiquidity(bytes32,address,int24,int24,int256,bytes32)', // Uni v4 singleton (topic1 = pool id)
 ].map((s) => keccak256(toBytes(s)));
 
-// Swap/LP log query for a pool: a v4 pool is queried on the PoolManager with its
-// pool id as topic1; a real pool contract is queried directly.
+// v4 pools are queried on the PoolManager with poolId as topic1; pool contracts directly.
 const poolTopics = (ctx, topicList) => (ctx.topicFilter ? [topicList, ctx.topicFilter] : [topicList]);
 
 // Binary-search the block where the pool contract's code first exists (~26 eth_getCode calls).
@@ -58,9 +48,7 @@ export async function findCreationBlock(pool, latest) {
   return lo;
 }
 
-// EOAs behind the first N swaps after pool creation.
-// Raw logs are collected first and sliced to N — only those txs are attributed,
-// so a pool with a thousand launch-hour swaps still costs ~50 tx lookups.
+// Traders behind the first N swaps after pool creation; only those N txs are attributed.
 export async function firstBlockCohort({ ctx, creationBlock, log = () => {} }) {
   let from = creationBlock;
   const logs = [];
@@ -117,7 +105,7 @@ export async function repeatCohort({ ctx, fromBlock, toBlock, log = () => {} }) 
   return { wallets: new Set(swaps.filter((s) => s.side === 'sell').map((s) => s.trader)) };
 }
 
-// The EOA that provided the pool's initial liquidity — "holder #0" for rug analysis.
+// The EOA that provided the pool's initial liquidity - "holder #0" for rug analysis.
 export async function initialLpEoa({ ctx, creationBlock }) {
   if (creationBlock === null) return null;
   const logs = await getLogsChunked({
@@ -133,18 +121,15 @@ export async function initialLpEoa({ ctx, creationBlock }) {
   return t === 'unattributed' ? null : t;
 }
 
-// Funding annotations for the window's sellers (requires an Alchemy key):
-//   deployerFunded — sellers whose first inbound transfer came from the initial-LP EOA
-//                    or a first-block wallet
-//   clusters       — groups of ≥2 sellers sharing the same first funder (one operator's fleet)
-export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log = () => {} }) {
+// Funding annotations (needs Alchemy): deployerFunded sellers + shared-funder clusters.
+export async function fundingCohort({ sellers, initialLp, firstBlockWallets, cap = FUNDING_MAX_WALLETS, log = () => {} }) {
   if (!fundingEnabled()) return { enabled: false };
   const eligible = sellers.filter(
     (s) => s.usd >= FUNDING_MIN_USD && /^0x[0-9a-f]{40}$/.test(s.wallet), // never walk 'unattributed'
   );
   const targets = eligible
     .sort((a, b) => b.usd - a.usd)
-    .slice(0, FUNDING_MAX_WALLETS)
+    .slice(0, cap)
     .map((s) => s.wallet);
   log(
     targets.length < eligible.length
@@ -156,7 +141,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
   });
   if (failed > 0) log(`⚠ ${failed}/${targets.length} funding walks FAILED: ${firstError}`);
   if (targets.length > 0 && failed === targets.length) {
-    return { enabled: false, failedReason: `all walks failed — ${firstError}` };
+    return { enabled: false, failedReason: `all walks failed - ${firstError}` };
   }
 
   const houseFunders = new Set([...(initialLp ? [initialLp] : []), ...firstBlockWallets]);
@@ -174,7 +159,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
 
   // Infrastructure guard: a shared first-funder only implies one operator when the
   // funder is a low-degree EOA. Contracts (bridges, factories, paymasters, routers)
-  // and exchange hot wallets / disperse bots fund thousands of unrelated addresses —
+  // and exchange hot wallets / disperse bots fund thousands of unrelated addresses -
   // accusing their users would be a smear. Operators fund fleets from EOAs.
   const INFRA_DEGREE = 1000;
   for (const cl of clusters) {
@@ -185,7 +170,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
         cl.infraReason = 'contract funder (bridge/factory/paymaster)';
         continue;
       }
-      // Members that are themselves contracts are smart accounts — a shared funder
+      // Members that are themselves contracts are smart accounts - a shared funder
       // is then usually the wallet product's gas tank seeding unrelated users, not
       // one operator. Shown, never counted. (Ambiguity never accuses.)
       const sampled = cl.members.slice(0, 5);
@@ -195,7 +180,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
       const contractMembers = codes.filter((c) => c && c !== '0x').length;
       if (contractMembers * 2 >= sampled.length) {
         cl.infra = true;
-        cl.infraReason = 'members are smart accounts — funder may be wallet infrastructure';
+        cl.infraReason = 'members are smart accounts - funder may be wallet infrastructure';
         continue;
       }
       cl.funderOutgoing = await outgoingTransferCount(cl.funder); // capped at 1000
@@ -216,12 +201,10 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, log
   return { enabled: true, initialLp, funderOf, deployerFunded, clusters, clusterHouse, walked: targets.length };
 }
 
-// Classify every seller in the tape and compute the rake.
-// Priority when a wallet is in several cohorts:
-// first-block > deployer-funded > cluster > lp > repeat.
+// Classify sellers and compute the rake. Priority: first-block > deployer-funded > cluster > lp > repeat.
 export function computeRake(tape, { firstBlock, lp, repeat, funding = { enabled: false } }) {
   const classify = (wallet) => {
-    if (wallet === 'unattributed') return 'unlabeled'; // pruned tx — never cohorted
+    if (wallet === 'unattributed') return 'unlabeled'; // pruned tx - never cohorted
     if (firstBlock.wallets.has(wallet)) return 'first-block';
     if (funding.enabled && funding.deployerFunded.has(wallet)) return 'deployer-funded';
     if (funding.enabled && funding.clusterHouse?.has(wallet)) return 'cluster';

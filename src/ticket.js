@@ -1,6 +1,4 @@
-// RAKE — your ticket. Window-based framing only: we never claim wallet A's buy
-// "paid" wallet B (both traded against the pool); we show what verifiably
-// happened around each buy, with tx hashes.
+// Your ticket: window-based framing only, never a causal "A paid B" claim.
 
 const NEARBY_BLOCKS = 20; // ±20 Base blocks = ±40 seconds
 

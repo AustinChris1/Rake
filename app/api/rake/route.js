@@ -1,5 +1,4 @@
-// RAKE — SSE endpoint. Streams the live trace, then the full receipt.
-// Runs the deterministic engine inside a Node serverless function.
+// SSE endpoint: streams the live trace, then the full receipt.
 
 import { runRake } from '../../../src/report.js';
 
@@ -62,7 +61,7 @@ export async function GET(req) {
         return finish();
       }
       if (running >= MAX_CONCURRENT) {
-        send('fatal', { message: 'RAKE is busy with other runs — try again in a minute.' });
+        send('fatal', { message: 'RAKE is busy with other runs - try again in a minute.' });
         return finish();
       }
 

@@ -1,6 +1,6 @@
 'use client';
 
-// RAKE — the table. Noir casino: graphite, champagne gold, cream receipts.
+// RAKE - the table. Noir casino: graphite, champagne gold, cream receipts.
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
@@ -117,7 +117,7 @@ export default function Page() {
             transition={{ delay: 0.15, duration: 0.7 }}
             className="mx-auto mt-5 max-w-[58ch] text-cream-dim"
           >
-            Paste a Base token. Rake reconstructs the real swaps, names who got paid — from the actual transactions, in dollars —
+            Paste a Base token. Rake reconstructs the real swaps, names who got paid - from the actual transactions, in dollars -
             and prints the receipt.
           </motion.p>
         </section>
@@ -169,7 +169,7 @@ export default function Page() {
               <label className="min-w-[220px] flex-1">
                 <span className="text-xs uppercase tracking-[0.12em] text-cream-dim">
                   <Wallet className="mr-1 inline h-3 w-3" />
-                  Your wallet <em className="normal-case opacity-70">(optional — get your ticket)</em>
+                  Your wallet <em className="normal-case opacity-70">(optional - get your ticket)</em>
                 </span>
                 <input
                   value={wallet}
@@ -224,7 +224,7 @@ export default function Page() {
               <div className="overflow-hidden rounded-xl border border-noir-line">
                 <div className="flex items-center gap-2 bg-noir-800 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-cream-dim">
                   <span className={`h-2 w-2 rounded-full ${running ? 'animate-pulse bg-win' : 'bg-cream-dim'}`} />
-                  live trace — every line is a real call
+                  live trace - every line is a real call
                 </div>
                 <div ref={traceRef} className="trace-scroll max-h-56 overflow-y-auto bg-noir-950 px-4 py-3 text-[13px] text-cream-dim">
                   {trace.map((line, i) => (
@@ -258,7 +258,7 @@ export default function Page() {
       <footer className="mx-auto mt-24 max-w-5xl border-t border-noir-line px-5 py-10 text-[13px] text-cream-dim">
         <p>
           Built on Base for the <span className="text-gold-400">Orion Builder Hackathon</span>. Data: Base RPC logs, Dexscreener,
-          Alchemy transfers. Not financial advice — it's a receipt.
+          Alchemy transfers. Not financial advice - it's a receipt.
         </p>
       </footer>
     </>
