@@ -39,11 +39,17 @@ async function deepHandler(req) {
   return NextResponse.json({ tier: 'deep-pass', ...report });
 }
 
+const freeHandler = (note) => async (req) => {
+  const res = await deepHandler(req);
+  res.headers.set('x-rake-deeppass', note);
+  return res;
+};
+
 let handler;
 if (PAY_TO) {
   const facilitator = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
   const resourceServer = new x402ResourceServer(facilitator).register(NETWORK, new ExactEvmScheme());
-  handler = withX402(
+  const paid = withX402(
     deepHandler,
     {
       accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO, maxTimeoutSeconds: 300 },
@@ -53,12 +59,20 @@ if (PAY_TO) {
     },
     resourceServer,
   );
-} else {
+  // A facilitator that rejects the configured network must degrade to free, never 500.
   handler = async (req) => {
-    const res = await deepHandler(req);
-    res.headers.set('x-rake-deeppass', 'dev-mode-unpaid: set X402_PAY_TO to enable x402 payment');
-    return res;
+    try {
+      return await paid(req);
+    } catch (err) {
+      if (err?.name === 'RouteConfigurationError' || /facilitator/i.test(err?.message ?? '')) {
+        console.error('x402 disabled:', err.message);
+        return freeHandler(`x402-misconfigured: ${err.message?.slice(0, 120)} - running free`)(req);
+      }
+      throw err;
+    }
   };
+} else {
+  handler = freeHandler('dev-mode-unpaid: set X402_PAY_TO to enable x402 payment');
 }
 
 export const GET = handler;

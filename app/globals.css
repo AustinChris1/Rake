@@ -67,6 +67,19 @@ body {
   bottom: -8px;
 }
 
+/* live receipts ticker */
+.ticker {
+  display: inline-block;
+  animation: ticker-scroll 30s linear infinite;
+}
+.ticker:hover {
+  animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 /* thin gold scrollbars on dark panels */
 .trace-scroll::-webkit-scrollbar {
   width: 8px;

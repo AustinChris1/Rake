@@ -1,6 +1,6 @@
 // One patrol pass for GitHub Actions: rake every watched pool, alert on crossings, exit.
 
-import { tgApi, sendMessage, checkOnce, isBreach, isCalm, formatAlert } from '../src/watchcore.js';
+import { tgApi, sendMessage, checkOnce, isBreach, isCalm, formatAlert, alertKeyboard } from '../src/watchcore.js';
 import { storeEnabled, loadWatches, saveWatches } from '../src/watchstore.js';
 
 const BOT = process.env.TELEGRAM_BOT_TOKEN;
@@ -27,7 +27,7 @@ for (const token of [...new Set(watches.map((w) => w.token))]) {
   for (const w of watches.filter((w) => w.token === token)) {
     if (isBreach(s, w.threshold) && w.armed && s.status === 'OK') {
       w.armed = false;
-      await sendMessage(tg, w.chatId, formatAlert(s, token, PUBLIC_URL));
+      await sendMessage(tg, w.chatId, formatAlert(s, token, PUBLIC_URL), alertKeyboard(PUBLIC_URL, token));
       console.log(`alerted chat ${w.chatId}: ${s.symbol} rake ${s.rakePct?.toFixed(1)}%`);
     } else if (!isBreach(s, w.threshold) && !w.armed && isCalm(s, w.threshold)) {
       w.armed = true;

@@ -21,8 +21,46 @@ export function tgApi(botToken) {
   };
 }
 
-export const sendMessage = (tg, chatId, text) =>
-  tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true });
+export const sendMessage = (tg, chatId, text, keyboard) =>
+  tg('sendMessage', {
+    chat_id: chatId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+    ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}),
+  });
+
+// Inline keyboards. callback_data actions: check:<token>, unwatch:<token>, watch:<token>
+export const alertKeyboard = (publicUrl, token) => [
+  [
+    { text: '📃 Open receipt', url: receiptLink(publicUrl, token) },
+    { text: '🔁 Check again', callback_data: `check:${token}` },
+  ],
+  [{ text: '🔕 Unwatch', callback_data: `unwatch:${token}` }],
+];
+
+export const checkKeyboard = (publicUrl, token, watched) => [
+  [
+    { text: '📃 Open receipt', url: receiptLink(publicUrl, token) },
+    watched
+      ? { text: '🔕 Unwatch', callback_data: `unwatch:${token}` }
+      : { text: '👁 Watch this token', callback_data: `watch:${token}` },
+  ],
+];
+
+export const helpKeyboard = (publicUrl) => [
+  [
+    { text: '🌐 Open RAKE', url: publicUrl },
+    { text: '📖 Docs', url: `${publicUrl.replace(/\/$/, '')}/docs` },
+  ],
+];
+
+// t.me/<bot>?start=watch_0x… and check_0x… deep links from the webapp.
+export function parseStartPayload(text) {
+  const payload = text.trim().split(/\s+/)[1] ?? '';
+  const m = payload.match(/^(watch|check)_(0x[0-9a-fA-F]{40})$/);
+  return m ? { action: m[1], token: m[2].toLowerCase() } : null;
+}
 
 export const receiptLink = (publicUrl, token) => `${publicUrl.replace(/\/$/, '')}/?token=${token}&hours=1`;
 

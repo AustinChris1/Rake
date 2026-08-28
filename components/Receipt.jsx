@@ -4,8 +4,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion, animate } from 'framer-motion';
-import { AlertTriangle, Download, ExternalLink, Network, Ticket, Bot } from 'lucide-react';
+import { AlertTriangle, Download, ExternalLink, Eye, Network, Ticket, Bot } from 'lucide-react';
 import { usd, short, addrUrl, txUrl } from '../lib/format.js';
+import { botDeepLink } from '../lib/links.js';
 
 // Results mount after a run completes - animate on mount, never gate on scroll.
 const reveal = {
@@ -298,13 +299,27 @@ export default function Receipt({ report }) {
         </motion.section>
       )}
 
-      <motion.div {...reveal}>
+      <motion.div {...reveal} className="flex flex-wrap gap-3">
         <button
           onClick={download}
           className="flex items-center gap-2 rounded-lg border border-noir-line px-4 py-2.5 text-[13px] text-gold-400 transition hover:bg-noir-800"
         >
           <Download className="h-4 w-4" /> download full receipt (JSON)
         </button>
+        <a
+          href={botDeepLink('watch', tape.token)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-lg bg-gold-400 px-4 py-2.5 text-[13px] font-semibold text-noir-950 transition hover:brightness-110"
+        >
+          <Eye className="h-4 w-4" /> watch {tape.tokenSymbol} on Telegram
+        </a>
+        <a
+          href="/docs/usage#the-deep-pass"
+          className="flex items-center gap-2 rounded-lg border border-noir-line px-4 py-2.5 text-[13px] text-cream-dim transition hover:bg-noir-800 hover:text-cream"
+        >
+          deep pass API →
+        </a>
       </motion.div>
     </div>
   );
