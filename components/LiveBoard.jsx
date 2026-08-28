@@ -1,41 +1,23 @@
 'use client';
 
-// Live extraction leaderboard, read straight from the public GitHub log the agent
-// commits hourly. A ticker of real receipts plus a ranked table with GSAP reveals.
+// The floor, live: latest reading per trending token from the hourly public log.
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { ExternalLink, Radio } from 'lucide-react';
-import { LOG_RAW_URL, GITHUB_URL } from '../lib/links.js';
+import { ExternalLink } from 'lucide-react';
+import { useLogEvents } from '../lib/useLog.js';
+import { GITHUB_URL } from '../lib/links.js';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const usd = (n) => '$' + Math.round(n).toLocaleString('en-US');
 
 export default function LiveBoard() {
-  const [rows, setRows] = useState([]);
-  const [checked, setChecked] = useState(0);
+  const { rows, checked } = useLogEvents();
   const scope = useRef(null);
-
-  useEffect(() => {
-    fetch(LOG_RAW_URL)
-      .then((r) => r.text())
-      .then((text) => {
-        const events = text.trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
-        const latest = {};
-        for (const e of events) latest[e.token] = e; // chronological file, last write wins
-        setChecked(events.filter((e) => e.checked).length);
-        setRows(
-          Object.values(latest)
-            .filter((e) => e.status === 'OK' && e.rakePct != null)
-            .sort((a, b) => b.rakePct - a.rakePct)
-            .slice(0, 10),
-        );
-      })
-      .catch(() => {});
-  }, []);
 
   useGSAP(
     () => {
@@ -45,35 +27,31 @@ export default function LiveBoard() {
         stagger: 0.06,
         duration: 0.5,
         ease: 'power2.out',
-        scrollTrigger: { trigger: scope.current, start: 'top 75%', once: true },
+        scrollTrigger: { trigger: scope.current, start: 'top 85%', once: true },
       });
     },
     { scope, dependencies: [rows.length] },
   );
 
   if (!rows.length) return null;
-  const ticker = rows.map((e) => `${e.symbol} ${e.rakePct}% of ${usd(e.usdIn)}`).join('  ·  ');
 
   return (
-    <section id="board" ref={scope} className="mx-auto mt-28 max-w-5xl scroll-mt-24 px-5">
-      <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-wide text-cream">
-        <Radio className="h-5 w-5 animate-pulse text-loss" />
-        The table, <span className="text-gold-400">live</span>
+    <section id="floor" ref={scope} className="mx-auto mt-32 max-w-6xl scroll-mt-24 px-5">
+      <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-cream-dim">
+        <span className="font-display text-gold-400">02</span>
+        <span className="h-px w-10 bg-noir-line" />
+        the floor, live
+      </div>
+      <h2 className="mt-4 font-display text-3xl font-black tracking-wide text-cream">
+        The most extractive candles on Base, <span className="text-gold-400">right now</span>
       </h2>
       <p className="mt-3 max-w-[68ch] text-cream-dim">
         The agent rakes Base's trending tokens every hour and commits every event to a public,
-        tamper-evident log. This is the latest reading per token - the most extractive candles on Base right now.
+        tamper-evident log. Twelve hours later it audits its own signal - and publishes the split
+        whichever way it comes out.
       </p>
 
-      {/* live receipts ticker */}
-      <div className="mt-6 overflow-hidden rounded-lg border border-noir-line bg-noir-950 py-2">
-        <div className="ticker whitespace-nowrap font-mono text-[13px] text-gold-400">
-          <span className="px-8">{ticker}</span>
-          <span className="px-8">{ticker}</span>
-        </div>
-      </div>
-
-      <div className="mt-4 overflow-x-auto rounded-xl border border-noir-line bg-noir-900">
+      <div className="mt-6 overflow-x-auto rounded-xl border border-noir-line bg-noir-900">
         <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr className="border-b border-noir-line text-left text-cream-dim">
@@ -94,9 +72,9 @@ export default function LiveBoard() {
                 <td className="px-4 py-2.5 text-right text-cream-dim">{usd(e.usdIn)}</td>
                 <td className="px-4 py-2.5 text-right text-cream-dim">{usd(e.houseUsd)}</td>
                 <td className="px-4 py-2.5">
-                  <a href={`/?token=${e.token}&hours=1`} className="text-gold-400 underline decoration-dotted underline-offset-2 hover:decoration-solid">
+                  <Link href={`/?token=${e.token}&hours=1`} className="text-gold-400 underline decoration-dotted underline-offset-2 hover:decoration-solid">
                     rake it <ExternalLink className="inline h-3 w-3" />
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -104,11 +82,11 @@ export default function LiveBoard() {
         </table>
       </div>
       <p className="mt-3 text-xs text-cream-dim">
-        {checked > 0 ? `${checked} events have completed their 12h self-check. ` : ''}Full history and the self-check split:{' '}
+        {checked > 0 ? `${checked} events have completed their 12h self-check. ` : ''}Full history:{' '}
         <a className="text-gold-400 underline decoration-dotted underline-offset-2" href={`${GITHUB_URL}/blob/main/log/LEADERBOARD.md`} target="_blank" rel="noopener noreferrer">
           the public log
-        </a>{' '}
-        - published whichever way it comes out.
+        </a>
+        .
       </p>
     </section>
   );

@@ -40,6 +40,18 @@ jobs:
           # Optional but recommended: enables deployer-funded + cluster cohorts.
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
 
+      # GitHub throttles fine-grained crons; the patrol also rides this hourly run
+      # so watch alerts have two chances to fire.
+      - name: Watch patrol (piggyback)
+        continue-on-error: true
+        run: node scripts/patrol.js
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          RAKE_PUBLIC_URL: ${{ secrets.RAKE_PUBLIC_URL }}
+
       - name: Commit the log
         run: |
           git config user.name "rake-agent"

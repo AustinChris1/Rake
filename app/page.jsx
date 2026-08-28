@@ -3,13 +3,15 @@
 // RAKE - the table. Noir casino: graphite, champagne gold, cream receipts.
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { Flame, Loader2, Play, Wallet, Send, BookOpen } from 'lucide-react';
+import { Flame, Loader2, Play, Wallet, Send, BookOpen, ArrowDown } from 'lucide-react';
 import GitHubIcon from '../components/GitHubIcon.jsx';
 import Nav from '../components/Nav.jsx';
+import TickerBar from '../components/TickerBar.jsx';
 import Receipt from '../components/Receipt.jsx';
 import HowItWorks from '../components/HowItWorks.jsx';
 import LiveBoard from '../components/LiveBoard.jsx';
@@ -19,7 +21,7 @@ import { BOT_URL, GITHUB_URL } from '../lib/links.js';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const WINDOWS = ['1', '4', '24'];
-const HEADLINE = ['Every', 'candle', 'has', 'a', 'house.'];
+const HEADLINE = ['EVERY', 'CANDLE', 'HAS A', 'HOUSE.'];
 
 export default function Page() {
   const [token, setToken] = useState('');
@@ -31,52 +33,34 @@ export default function Page() {
   const [fatal, setFatal] = useState(null);
   const [running, setRunning] = useState(false);
   const sourceRef = useRef(null);
-  const traceRef = useRef(null);
+  const tapeRef = useRef(null);
   const resultRef = useRef(null);
-  const heroRef = useRef(null);
+  const rootRef = useRef(null);
 
   useGSAP(
     () => {
-      // headline: words dealt in like cards
-      gsap.from('.hero-word', {
-        yPercent: 120,
-        opacity: 0,
-        rotateX: -40,
-        stagger: 0.09,
-        duration: 0.8,
-        ease: 'power3.out',
-      });
-      gsap.from('.hero-sub, .hero-form', { opacity: 0, y: 24, delay: 0.5, duration: 0.7, stagger: 0.12, ease: 'power2.out' });
-      // scroll progress bar
-      gsap.to('.progress-bar', {
-        scaleX: 1,
+      // headline lines wipe up like dealt cards
+      gsap.from('.hero-line', { yPercent: 110, stagger: 0.1, duration: 0.9, ease: 'power4.out', delay: 0.1 });
+      gsap.from('.hero-fade', { opacity: 0, y: 20, stagger: 0.1, delay: 0.6, duration: 0.7, ease: 'power2.out' });
+      // ghost mark drifts as you scroll
+      gsap.to('.ghost-mark', {
+        yPercent: 24,
+        rotate: -4,
         ease: 'none',
-        scrollTrigger: { start: 0, end: 'max', scrub: 0.3 },
+        scrollTrigger: { trigger: '.hero-wrap', start: 'top top', end: 'bottom top', scrub: true },
       });
-      // glow parallax
-      gsap.to('.hero-glow', {
-        yPercent: 35,
-        opacity: 0.25,
-        ease: 'none',
-        scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-      });
-      // the rake sweep: chips dragged across the divider as you scroll past the hero
+      // chips raked across the divider, scrubbed to scroll
       gsap.fromTo(
         '.sweep-chips',
-        { x: '-12vw' },
-        {
-          x: '88vw',
-          ease: 'none',
-          scrollTrigger: { trigger: '.sweep-lane', start: 'top 95%', end: 'top 25%', scrub: 0.5 },
-        },
+        { x: '-14vw' },
+        { x: '90vw', ease: 'none', scrollTrigger: { trigger: '.sweep-lane', start: 'top 95%', end: 'top 20%', scrub: 0.5 } },
       );
     },
-    { scope: heroRef },
+    { scope: rootRef },
   );
 
   useEffect(() => {
     fetch('/api/trending').then((r) => r.json()).then(setTrending).catch(() => {});
-    // Shareable links: /?token=0x…&hours=4&wallet=0x… auto-runs on load.
     const boot = new URLSearchParams(location.search);
     if (isAddress(boot.get('token'))) {
       const h = WINDOWS.includes(boot.get('hours')) ? boot.get('hours') : '4';
@@ -91,7 +75,7 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    traceRef.current?.scrollTo({ top: traceRef.current.scrollHeight });
+    tapeRef.current?.scrollTo({ top: tapeRef.current.scrollHeight });
   }, [trace]);
 
   function run(tok, hrs, wal) {
@@ -127,39 +111,68 @@ export default function Page() {
   }
 
   return (
-    <div ref={heroRef}>
-      <div className="progress-bar fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-gold-400" />
+    <div ref={rootRef}>
       <Nav />
 
-      <main className="relative overflow-x-clip">
-        <div
-          aria-hidden
-          className="hero-glow pointer-events-none absolute left-1/2 top-[-260px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(233,193,94,0.14),transparent)]"
-        />
+      <main className="relative overflow-x-clip pt-14">
+        <TickerBar />
 
-        {/* hero */}
-        <section className="mx-auto max-w-6xl px-5 pt-20 text-center">
-          <h1 className="font-display text-[clamp(34px,6.4vw,64px)] font-black leading-[1.05] tracking-wide text-cream" style={{ perspective: 600 }}>
-            {HEADLINE.map((w, i) => (
-              <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">
-                <span className={`hero-word inline-block ${w === 'house.' ? 'text-gold-400' : ''}`}>{w}&nbsp;</span>
+        {/* ── hero ─────────────────────────────── */}
+        <section className="hero-wrap relative mx-auto max-w-6xl px-5 pb-10 pt-16 sm:pt-24">
+          <svg
+            viewBox="0 0 64 64"
+            fill="none"
+            aria-hidden="true"
+            className="ghost-mark pointer-events-none absolute -right-24 -top-10 h-[540px] w-[540px] rotate-[8deg] text-gold-400 opacity-[0.05] sm:-right-10"
+          >
+            <g stroke="currentColor" strokeWidth="5" strokeLinecap="round">
+              <path d="M48 9 L26 37" />
+              <path d="M10 42 L38 42" />
+            </g>
+            <g fill="currentColor">
+              <circle cx="16" cy="52" r="5" />
+              <circle cx="29" cy="53" r="5" />
+            </g>
+            <circle cx="45" cy="54" r="5" stroke="currentColor" strokeWidth="3" fill="none" />
+          </svg>
+
+          <div className="hero-fade flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-cream-dim">
+            <span className="h-px w-10 bg-gold-400" />
+            onchain market forensics · base
+          </div>
+
+          <h1 className="mt-6 font-display font-black leading-[0.95] tracking-wide text-cream" style={{ fontSize: 'clamp(44px, 9vw, 110px)' }}>
+            {HEADLINE.map((line, i) => (
+              <span key={i} className="block overflow-hidden">
+                <span className={`hero-line block ${i === 3 ? 'text-gold-400' : ''}`}>{line}</span>
               </span>
             ))}
           </h1>
-          <p className="hero-sub mx-auto mt-5 max-w-[62ch] text-cream-dim">
-            Onchain market forensics for Base. Paste a token - RAKE reconstructs the real swaps, names who
-            extracted the money, and prints the receipt. Every number is a log or a quote, never an opinion.
-          </p>
+
+          <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+            <p className="hero-fade max-w-[52ch] text-cream-dim">
+              Paste a Base token. RAKE reconstructs the real swaps, names who extracted the money, and
+              prints the receipt. Every number is a log or a quote - never an opinion.
+            </p>
+            <a href="#tape" className="hero-fade group flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.2em] text-gold-400">
+              pull the tape <ArrowDown className="h-4 w-4 transition group-hover:translate-y-1" />
+            </a>
+          </div>
         </section>
 
-        {/* form */}
-        <section id="tape" className="hero-form mx-auto mt-10 max-w-6xl scroll-mt-24 px-5">
+        {/* ── 01 · the table ───────────────────── */}
+        <section id="tape" className="mx-auto max-w-6xl scroll-mt-24 px-5 pt-8">
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-cream-dim">
+            <span className="font-display text-gold-400">01</span>
+            <span className="h-px w-10 bg-noir-line" />
+            the table
+          </div>
           <form
             onSubmit={(e) => {
               e.preventDefault();
               run(token.trim(), hours, wallet.trim());
             }}
-            className="rounded-2xl border border-noir-line bg-gradient-to-b from-noir-800 to-noir-900 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+            className="mt-4 rounded-2xl border border-noir-line bg-gradient-to-b from-noir-800 to-noir-900 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
           >
             <div className="flex flex-wrap items-end gap-4">
               <label className="min-w-[240px] flex-1">
@@ -237,33 +250,38 @@ export default function Page() {
           </form>
         </section>
 
-        {/* trace */}
+        {/* ── the tape prints ──────────────────── */}
         <AnimatePresence>
           {(trace.length > 0 || running) && (
             <motion.section
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mx-auto mt-6 max-w-6xl px-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mx-auto mt-10 max-w-2xl px-5"
             >
-              <div className="overflow-hidden rounded-xl border border-noir-line">
-                <div className="flex items-center gap-2 bg-noir-800 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-cream-dim">
-                  <span className={`h-2 w-2 rounded-full ${running ? 'animate-pulse bg-win' : 'bg-cream-dim'}`} />
-                  live trace - every line is a real call
+              <div className="printer-slot mx-6" />
+              <motion.div
+                layout
+                className="tape mx-8 -mt-[2px] rotate-[0.4deg] px-5 pb-4 pt-3 font-mono text-[12.5px] shadow-[0_18px_50px_rgba(0,0,0,0.6)]"
+              >
+                <div className="flex items-center justify-between border-b border-dashed border-ink-soft pb-2 text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                  <span>RAKE · live tape</span>
+                  <span className={running ? 'text-ink' : ''}>{running ? '● printing' : '■ done'}</span>
                 </div>
-                <div ref={traceRef} className="trace-scroll max-h-56 overflow-y-auto bg-noir-950 px-4 py-3 text-[13px] text-cream-dim">
+                <div ref={tapeRef} className="trace-scroll max-h-60 overflow-y-auto pt-2 text-ink">
                   {trace.map((line, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="break-all">
-                      · {line}
+                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="break-all leading-relaxed">
+                      <span className="text-ink-soft">·</span> {line}
                     </motion.div>
                   ))}
+                  {running && <div className="animate-pulse text-ink-soft">▍</div>}
                 </div>
-              </div>
+              </motion.div>
             </motion.section>
           )}
         </AnimatePresence>
 
-        {/* result */}
+        {/* ── the receipt ──────────────────────── */}
         <div ref={resultRef} className="mx-auto mt-10 max-w-6xl scroll-mt-24 px-5">
           {fatal && (
             <motion.div
@@ -277,8 +295,8 @@ export default function Page() {
           {report && <Receipt report={report} />}
         </div>
 
-        {/* the rake sweep divider */}
-        <div className="sweep-lane relative mt-24 h-16 overflow-hidden border-y border-noir-line bg-noir-900/60">
+        {/* ── the sweep ────────────────────────── */}
+        <div className="sweep-lane relative mt-28 h-16 overflow-hidden border-y border-noir-line bg-noir-900/60">
           <div className="sweep-chips absolute top-1/2 flex -translate-y-1/2 items-center gap-3">
             <svg viewBox="0 0 64 64" className="h-9 w-9 text-gold-400" fill="none" aria-hidden="true">
               <g stroke="currentColor" strokeWidth="5" strokeLinecap="round">
@@ -299,42 +317,49 @@ export default function Page() {
         <LiveBoard />
         <HowItWorks />
 
-        {/* watch + deep pass CTA */}
-        <section className="mx-auto mt-24 grid max-w-5xl gap-4 px-5 sm:grid-cols-2">
-          <a
-            href={BOT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group rounded-xl border border-noir-line bg-noir-900 p-6 transition hover:border-gold-400/50"
-          >
-            <Send className="h-5 w-5 text-gold-400" />
-            <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">The watch - @basedrakebot</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-cream-dim">
-              A guard, not a lookup. /watch any token and Telegram pings you the moment the house starts
-              collecting - rake over your threshold or a 3x drain, receipts attached. Runs serverless, forever.
-            </p>
-            <span className="mt-3 inline-block text-[13px] text-gold-400 transition group-hover:translate-x-1">open the bot →</span>
-          </a>
-          <a href="/docs/usage#the-deep-pass" className="group rounded-xl border border-noir-line bg-noir-900 p-6 transition hover:border-gold-400/50">
-            <BookOpen className="h-5 w-5 text-gold-400" />
-            <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">The deep pass - for agents</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-cream-dim">
-              One GET, one nickel. Any agent pays $0.05 USDC over x402 and receives the full forensic receipt:
-              every seller funding-walked, two-hop cluster graphs. No account, no API key.
-            </p>
-            <span className="mt-3 inline-block text-[13px] text-gold-400 transition group-hover:translate-x-1">read the API docs →</span>
-          </a>
+        {/* ── 04 · beyond the page ─────────────── */}
+        <section className="mx-auto mt-32 max-w-6xl px-5">
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-cream-dim">
+            <span className="font-display text-gold-400">04</span>
+            <span className="h-px w-10 bg-noir-line" />
+            beyond the page
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <a
+              href={BOT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-xl border border-noir-line bg-noir-900 p-6 transition hover:border-gold-400/50"
+            >
+              <Send className="h-5 w-5 text-gold-400" />
+              <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">The watch - @basedrakebot</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-cream-dim">
+                A guard, not a lookup. /watch any token and Telegram pings you the moment the house starts
+                collecting - rake over your threshold or a 3x drain, receipts attached. Serverless, forever.
+              </p>
+              <span className="mt-3 inline-block text-[13px] text-gold-400 transition group-hover:translate-x-1">open the bot →</span>
+            </a>
+            <Link href="/docs/usage#the-deep-pass" className="group rounded-xl border border-noir-line bg-noir-900 p-6 transition hover:border-gold-400/50">
+              <BookOpen className="h-5 w-5 text-gold-400" />
+              <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">The deep pass - for agents</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-cream-dim">
+                One GET, one nickel. Any agent pays $0.05 USDC over x402 and receives the full forensic receipt:
+                every seller funding-walked, two-hop cluster graphs. No account, no API key.
+              </p>
+              <span className="mt-3 inline-block text-[13px] text-gold-400 transition group-hover:translate-x-1">read the API docs →</span>
+            </Link>
+          </div>
         </section>
       </main>
 
-      <footer className="mx-auto mt-24 max-w-6xl border-t border-noir-line px-5 py-10 text-[13px] text-cream-dim">
+      <footer className="mx-auto mt-28 max-w-6xl border-t border-noir-line px-5 py-10 text-[13px] text-cream-dim">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <span>
             Built on Base for the <span className="text-gold-400">Orion Builder Hackathon</span>.
           </span>
           <a className="flex items-center gap-1.5 hover:text-cream" href={BOT_URL} target="_blank" rel="noopener noreferrer"><Send className="h-3.5 w-3.5" /> @basedrakebot</a>
           <a className="flex items-center gap-1.5 hover:text-cream" href={GITHUB_URL} target="_blank" rel="noopener noreferrer"><GitHubIcon className="h-3.5 w-3.5" /> GitHub</a>
-          <a className="flex items-center gap-1.5 hover:text-cream" href="/docs"><BookOpen className="h-3.5 w-3.5" /> Docs</a>
+          <Link className="flex items-center gap-1.5 hover:text-cream" href="/docs"><BookOpen className="h-3.5 w-3.5" /> Docs</Link>
         </div>
         <p className="mt-3 opacity-75">Data: Base RPC logs, Dexscreener, Alchemy transfers. Not financial advice - it's a receipt.</p>
       </footer>
