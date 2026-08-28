@@ -59,10 +59,18 @@ pnpm watch             # needs TELEGRAM_BOT_TOKEN (@BotFather) in .env
 ## The watch - RAKE as a guard
 
 Message the bot `/watch 0xTOKEN 50` and a patrol re-rakes that pool's 1h window
-every hour. The moment the rake crosses your threshold - or the window becomes a
-≥3× drain - Telegram pings you with the numbers and the receipt link. Alerts fire
+on an interval. The moment the rake crosses your threshold - or the window becomes
+a ≥3× drain - Telegram pings you with the numbers and the receipt link. Alerts fire
 on the crossing and re-arm only after the pool calms down: a guard, not a spammer.
 `/check 0xTOKEN` rakes on demand; `/list` and `/unwatch` manage the patrol.
+
+**Serverless mode (no always-on PC):** commands hit the `/api/telegram` webhook on
+Vercel; watch state lives in a free Upstash Redis; the patrol runs every 30 min via
+GitHub Actions (`rake-watch.yml`). Setup: create an Upstash Redis db, set
+`UPSTASH_REDIS_REST_URL/TOKEN` + `TELEGRAM_BOT_TOKEN` + `TELEGRAM_WEBHOOK_SECRET`
+on Vercel and as repo secrets, then register the webhook once:
+`https://api.telegram.org/bot<TOKEN>/setWebhook?url=<app>/api/telegram&secret_token=<SECRET>`.
+`pnpm watch` remains as a local long-poll alternative.
 
 ## The deep pass (x402) - RAKE as a service for agents
 
