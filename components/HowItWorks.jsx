@@ -3,13 +3,8 @@
 // House rules: sticky chapter on the left, the five cohorts filing past on the
 // right with ghost numerals, each revealed by scroll.
 
-import { useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
+import { motion } from 'framer-motion';
 import { Zap, GitBranch, Network, Droplets, Repeat2, Scale } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const COHORTS = [
   { icon: Zap, name: 'first-block', rule: 'Traded in the first 50 swaps after the pool was deployed. The snipers.' },
@@ -20,25 +15,8 @@ const COHORTS = [
 ];
 
 export default function HowItWorks() {
-  const scope = useRef(null);
-
-  useGSAP(
-    () => {
-      gsap.utils.toArray('.cohort-card').forEach((el) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 50,
-          duration: 0.6,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-        });
-      });
-    },
-    { scope },
-  );
-
   return (
-    <section id="house" ref={scope} className="mx-auto mt-32 max-w-6xl scroll-mt-24 px-5">
+    <section id="house" className="mx-auto mt-32 max-w-6xl scroll-mt-24 px-5">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* sticky chapter */}
         <div className="lg:sticky lg:top-28 lg:self-start">
@@ -47,7 +25,7 @@ export default function HowItWorks() {
             <span className="h-px w-10 bg-noir-line" />
             house rules
           </div>
-          <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-wide text-cream">
+          <h2 className="mt-4 font-display text-2xl font-black leading-tight tracking-wide text-cream sm:text-3xl">
             The house is a <span className="text-gold-400">rule</span>,<br />not an opinion.
           </h2>
           <p className="mt-4 max-w-[48ch] text-cream-dim">
@@ -70,14 +48,21 @@ export default function HowItWorks() {
         {/* the cohorts file past */}
         <div className="flex flex-col gap-5">
           {COHORTS.map((c, i) => (
-            <div key={c.name} className="cohort-card relative overflow-hidden rounded-xl border border-noir-line bg-noir-900 p-6">
-              <span className="pointer-events-none absolute -right-2 -top-6 font-display text-[88px] font-black leading-none text-cream/[0.045]">
+            <motion.div
+              key={c.name}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="relative overflow-hidden rounded-xl border border-noir-line bg-noir-900 p-5 sm:p-6"
+            >
+              <span className="pointer-events-none absolute -right-2 -top-6 font-display text-[88px] font-black leading-none text-cream/5">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <c.icon className="h-5 w-5 text-gold-400" />
               <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">{c.name}</h3>
               <p className="mt-2 max-w-[52ch] text-[13px] leading-relaxed text-cream-dim">{c.rule}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

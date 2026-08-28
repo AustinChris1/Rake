@@ -1,9 +1,11 @@
 'use client';
 
-// The receipt - every section animates in on scroll; every figure links to Basescan.
+// The receipt. Rows are grids, not tables: they stack on phones and line up on desktop.
 
 import { useEffect, useState } from 'react';
 import { motion, animate } from 'framer-motion';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { AlertTriangle, Download, ExternalLink, Eye, Network, Ticket, Bot } from 'lucide-react';
 import { usd, short, addrUrl, txUrl } from '../lib/format.js';
 import { botDeepLink } from '../lib/links.js';
@@ -14,6 +16,11 @@ const reveal = {
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.55, ease: 'easeOut' },
 };
+
+// min-w-0: these are grid items, whose default min-width:auto would let wide
+// content push the card past the viewport on phones.
+const CARD = 'receipt min-w-0 rounded-sm px-4 py-5 shadow-[0_16px_50px_rgba(0,0,0,0.55)] sm:px-7 sm:py-6';
+const HEAD = 'border-b-2 border-dashed border-ink-soft pb-2 font-display text-[12px] font-bold uppercase tracking-[0.16em] sm:text-[13px] sm:tracking-[0.18em]';
 
 function CountUp({ value, decimals = 1, suffix = '' }) {
   const [txt, setTxt] = useState('0');
@@ -53,7 +60,7 @@ const TAG_STYLES = {
   unlabeled: 'text-ink-soft border-ink-soft',
 };
 const Tag = ({ name }) => (
-  <span className={`ml-2 inline-block rounded-full border px-2 py-px text-[10px] uppercase tracking-wider ${TAG_STYLES[name]}`}>
+  <span className={`ml-2 inline-block whitespace-nowrap rounded-full border px-2 py-px text-[10px] uppercase tracking-wider ${TAG_STYLES[name]}`}>
     {name}
   </span>
 );
@@ -61,7 +68,7 @@ const Tag = ({ name }) => (
 export default function Receipt({ report }) {
   if (report.status === 'UNPRICEABLE') {
     return (
-      <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-6 font-display tracking-wider text-gold-400">
+      <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-5 font-display text-sm tracking-wider text-gold-400">
         <AlertTriangle className="mr-2 inline h-5 w-5" /> UNPRICEABLE - {report.reason}
       </motion.div>
     );
@@ -94,7 +101,7 @@ export default function Receipt({ report }) {
   };
 
   return (
-    <div className="grid gap-10">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-10">
       {report.status === 'TOO_THIN' && (
         <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-5 font-display text-sm tracking-wider text-gold-400">
           TOO THIN - only {tape.totals?.swaps ?? 0} swaps in this window. Numbers below are shown but not judged.
@@ -102,18 +109,18 @@ export default function Receipt({ report }) {
       )}
 
       {/* headline */}
-      <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
-        <h2 className="border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
+      <motion.section {...reveal} className={CARD}>
+        <h2 className={HEAD}>
           The rake - {tape.tokenSymbol} · {tape.dex} · {tape.window.hours}h
         </h2>
-        <p className="mt-3 text-[13px] text-ink-soft">
+        <p className="mt-3 text-[12px] text-ink-soft sm:text-[13px]">
           pool <A href={tape.poolUrl ?? addrUrl(tape.pool)}>{short(tape.pool)}</A> · {tape.window.fromTime.slice(0, 16).replace('T', ' ')} →{' '}
           {tape.window.toTime.slice(11, 16)} UTC · blocks {tape.window.fromBlock}–{tape.window.toBlock}
         </p>
-        <div className={`my-3 font-display text-[clamp(52px,9vw,92px)] font-black leading-none ${pctColor}`}>
+        <div className={`my-3 font-display text-[clamp(56px,13vw,92px)] font-black leading-none ${pctColor}`}>
           {pct == null ? 'n/a' : <CountUp value={pct} suffix="%" />}
         </div>
-        <p className="max-w-[62ch]">
+        <p className="max-w-[62ch] text-[14px] sm:text-[15px]">
           Of <strong>{usd(rake.usdIn)}</strong> that entered this pool, <strong>{usd(rake.houseUsd)}</strong> left through house
           cohorts - wallets that were there first, funded each other, provide the liquidity, or sell every window.
         </p>
@@ -124,59 +131,55 @@ export default function Receipt({ report }) {
             engine could not tie the sellers to the house, not that the exit was safe.
           </p>
         )}
-        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-paper-dim pt-3 text-[13px] text-ink-soft">
-          <span><b className="block text-[15px] text-ink">{tape.totals.swaps}</b> swaps</span>
-          <span><b className="block text-[15px] text-ink">{usd(tape.totals.usdIn)}</b> in · {tape.totals.uniqueBuyers} buyers</span>
-          <span><b className="block text-[15px] text-ink">{usd(tape.totals.usdOut)}</b> out · {tape.totals.uniqueSellers} sellers</span>
-          <span><b className="block text-[15px] text-ink">{String(rake.meta.deployerFunded)}</b> funding walks</span>
-          <span><b className="block text-[15px] text-ink">{tape.quote.pricing ?? 'single print'}</b> USD pricing</span>
-        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-paper-dim pt-3 text-[12px] text-ink-soft sm:flex sm:flex-wrap sm:gap-x-8 sm:text-[13px]">
+          <div><dt className="order-2">swaps</dt><dd className="text-[15px] font-bold text-ink">{tape.totals.swaps}</dd></div>
+          <div><dt className="order-2">in · {tape.totals.uniqueBuyers} buyers</dt><dd className="text-[15px] font-bold text-ink">{usd(tape.totals.usdIn)}</dd></div>
+          <div><dt className="order-2">out · {tape.totals.uniqueSellers} sellers</dt><dd className="text-[15px] font-bold text-ink">{usd(tape.totals.usdOut)}</dd></div>
+          <div><dt className="order-2">funding walks</dt><dd className="text-[13px] font-bold wrap-break-word text-ink">{String(rake.meta.deployerFunded)}</dd></div>
+          <div className="col-span-2 sm:col-span-1"><dt className="order-2">USD pricing</dt><dd className="text-[13px] font-bold text-ink">{tape.quote.pricing ?? 'single print'}</dd></div>
+        </dl>
       </motion.section>
 
       {/* ledger */}
-      <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
-        <h2 className="border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-          Who got paid
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="mt-3 w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-ink-soft text-left text-ink-soft">
-                <th className="py-1 pr-3 font-medium">seller (EOA, not router)</th>
-                <th className="py-1 pr-3 text-right font-medium">took out</th>
-                <th className="py-1 font-medium">receipts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cohortRows.map((r, i) => (
-                <motion.tr
-                  key={r.wallet + i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: Math.min(i * 0.03, 0.4) }}
-                  className="border-b border-dotted border-paper-dim align-top"
-                >
-                  <td className="py-1.5 pr-3 whitespace-nowrap">
-                    <A href={addrUrl(r.wallet)}>{short(r.wallet)}</A>
-                    <Tag name={r.name} />
-                  </td>
-                  <td className="py-1.5 pr-3 text-right font-semibold whitespace-nowrap">{usd(r.usd)}</td>
-                  <td className="py-1.5 whitespace-nowrap">{r.txs.slice(0, 2).map((h) => <span key={h} className="mr-2"><Tx h={h} /></span>)}</td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+      <motion.section {...reveal} className={CARD}>
+        <h2 className={HEAD}>Who got paid</h2>
+        <div className="mt-3 hidden grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 border-b border-ink-soft pb-1 text-[12px] text-ink-soft sm:grid">
+          <span>seller (the human, not the router)</span>
+          <span className="text-right">took out</span>
+          <span>receipts</span>
         </div>
+        <ul className="text-[13px]">
+          {cohortRows.map((r, i) => (
+            <motion.li
+              key={r.wallet + i}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: Math.min(i * 0.03, 0.4) }}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-b border-dotted border-paper-dim py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+            >
+              <span className="min-w-0 truncate">
+                <A href={addrUrl(r.wallet)}>{short(r.wallet)}</A>
+                <Tag name={r.name} />
+              </span>
+              <span className="whitespace-nowrap text-right font-semibold">{usd(r.usd)}</span>
+              <span className="col-span-2 flex gap-3 text-ink-soft sm:col-span-1 sm:justify-end">
+                {r.txs.slice(0, 2).map((h) => (
+                  <Tx key={h} h={h} />
+                ))}
+              </span>
+            </motion.li>
+          ))}
+        </ul>
       </motion.section>
 
       {/* clusters */}
       {rake.clusters?.length > 0 && (
-        <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
-          <h2 className="flex items-center gap-2 border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-            <Network className="h-4 w-4" /> Funding clusters - one funder, many sellers
+        <motion.section {...reveal} className={CARD}>
+          <h2 className={`${HEAD} flex items-center gap-2`}>
+            <Network className="h-4 w-4 shrink-0" /> Funding clusters - one funder, many sellers
           </h2>
           {rake.clusters.slice(0, 5).map((cl) => (
-            <p key={cl.funder} className="mt-3 text-[13px] text-ink-soft">
+            <p key={cl.funder} className="mt-3 text-[13px] leading-relaxed text-ink-soft">
               funder <A href={addrUrl(cl.funder)}>{short(cl.funder)}</A> first-funded <b className="text-ink">{cl.size}</b> of this
               window's sellers: {cl.members.slice(0, 6).map((m, i) => (
                 <span key={m.wallet}>{i > 0 && ', '}<A href={addrUrl(m.wallet)}>{short(m.wallet)}</A></span>
@@ -193,9 +196,9 @@ export default function Receipt({ report }) {
 
       {/* ticket */}
       {ticket && (
-        <motion.section {...reveal} className="receipt rounded-sm px-7 py-6 shadow-[0_16px_50px_rgba(0,0,0,0.55)]">
-          <h2 className="flex items-center gap-2 border-b-2 border-dashed border-ink-soft pb-2 font-display text-[13px] font-bold uppercase tracking-[0.18em]">
-            <Ticket className="h-4 w-4" /> Your ticket{ticket.wallet ? <> - <A href={addrUrl(ticket.wallet)}>{short(ticket.wallet)}</A></> : null}
+        <motion.section {...reveal} className={CARD}>
+          <h2 className={`${HEAD} flex flex-wrap items-center gap-2`}>
+            <Ticket className="h-4 w-4 shrink-0" /> Your ticket{ticket.wallet ? <> - <A href={addrUrl(ticket.wallet)}>{short(ticket.wallet)}</A></> : null}
           </h2>
           {ticket.status === 'NOT_IN_WINDOW' ? (
             <>
@@ -240,39 +243,34 @@ export default function Receipt({ report }) {
             </>
           ) : (
             <>
-              <p className="mt-3 max-w-[62ch]">
+              <p className="mt-3 max-w-[62ch] text-[14px] sm:text-[15px]">
                 You bought <strong>{usd(ticket.buys.usd)}</strong> ({ticket.buys.count} tx) and sold{' '}
                 <strong>{usd(ticket.sells.usd)}</strong> ({ticket.sells.count} tx) in a window where{' '}
                 {ticket.windowRakePct?.toFixed(1)}% of inflow went to the house.
               </p>
-              <div className="overflow-x-auto">
-                <table className="mt-3 w-full border-collapse text-[13px]">
-                  <thead>
-                    <tr className="border-b border-ink-soft text-left text-ink-soft">
-                      <th className="py-1 pr-3 font-medium">your buy</th>
-                      <th className="py-1 pr-3 text-right font-medium">house sold within ±{ticket.nearbyBlocks} blocks</th>
-                      <th className="py-1 font-medium">largest nearby house sells</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ticket.buyEvents.map((b) => (
-                      <tr key={b.txHash} className="border-b border-dotted border-paper-dim align-top">
-                        <td className="py-1.5 pr-3 whitespace-nowrap">{usd(b.usd)} @ block {b.block} <Tx h={b.txHash} /></td>
-                        <td className="py-1.5 pr-3 text-right font-semibold">{usd(b.nearbyHouseSellUsd)}</td>
-                        <td className="py-1.5">
-                          {b.nearbyHouseSells.length
-                            ? b.nearbyHouseSells.map((s) => (
-                                <div key={s.txHash} className="whitespace-nowrap">
-                                  <A href={addrUrl(s.wallet)}>{short(s.wallet)}</A> {usd(s.usd)} <Tx h={s.txHash} />
-                                </div>
-                              ))
-                            : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ul className="mt-3 text-[13px]">
+                {ticket.buyEvents.map((b) => (
+                  <li key={b.txHash} className="border-b border-dotted border-paper-dim py-2.5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <span className="whitespace-nowrap">
+                        your buy <b>{usd(b.usd)}</b> @ block {b.block} <Tx h={b.txHash} />
+                      </span>
+                      <span className="whitespace-nowrap text-ink-soft">
+                        house sold <b className="text-ink">{usd(b.nearbyHouseSellUsd)}</b> within ±{ticket.nearbyBlocks} blocks
+                      </span>
+                    </div>
+                    {b.nearbyHouseSells.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-ink-soft">
+                        {b.nearbyHouseSells.map((s) => (
+                          <span key={s.txHash} className="whitespace-nowrap">
+                            <A href={addrUrl(s.wallet)}>{short(s.wallet)}</A> {usd(s.usd)} <Tx h={s.txHash} />
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </>
           )}
         </motion.section>
@@ -280,43 +278,66 @@ export default function Receipt({ report }) {
 
       {/* analyst */}
       {diagnosis && (
-        <motion.section {...reveal} className="rounded-xl border border-noir-line bg-noir-900 px-7 py-6">
-          <h2 className="flex items-center gap-2 font-display text-[13px] font-bold uppercase tracking-[0.18em] text-gold-400">
-            <Bot className="h-4 w-4" /> Analyst note{diagnosis.status === 'OK' ? ` - ${diagnosis.model}` : ''}
+        <motion.section {...reveal} className="rounded-xl border border-noir-line bg-noir-900 px-4 py-5 sm:px-7 sm:py-6">
+          <h2 className="flex flex-wrap items-center gap-2 font-display text-[12px] font-bold uppercase tracking-[0.16em] text-gold-400 sm:text-[13px]">
+            <Bot className="h-4 w-4 shrink-0" /> Analyst note{diagnosis.status === 'OK' ? ` - ${diagnosis.model}` : ''}
           </h2>
           {diagnosis.status === 'OK' ? (
             <>
-              <pre className="mt-4 whitespace-pre-wrap font-mono text-sm text-cream">{diagnosis.text}</pre>
+              <div className="mt-4 min-w-0 font-mono text-[13px] leading-relaxed text-cream sm:text-sm">
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mt-3 wrap-break-word first:mt-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-semibold text-gold-300">{children}</strong>,
+                    em: ({ children }) => <em className="text-cream-dim">{children}</em>,
+                    ul: ({ children }) => <ul className="mt-2 list-disc space-y-1.5 pl-4 marker:text-gold-400">{children}</ul>,
+                    ol: ({ children }) => <ol className="mt-2 list-decimal space-y-1.5 pl-4 marker:text-gold-400">{children}</ol>,
+                    li: ({ children }) => <li className="wrap-break-word">{children}</li>,
+                    code: ({ children }) => <code className="wrap-break-word text-gold-300">{children}</code>,
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="wrap-break-word text-gold-400 underline decoration-dotted">
+                        {children}
+                      </a>
+                    ),
+                    h1: ({ children }) => <h3 className="mt-4 font-display text-[13px] uppercase tracking-[0.14em] text-gold-400">{children}</h3>,
+                    h2: ({ children }) => <h3 className="mt-4 font-display text-[13px] uppercase tracking-[0.14em] text-gold-400">{children}</h3>,
+                    h3: ({ children }) => <h3 className="mt-4 font-display text-[13px] uppercase tracking-[0.14em] text-gold-400">{children}</h3>,
+                  }}
+                >
+                  {diagnosis.text}
+                </Markdown>
+              </div>
               {diagnosis.walks?.length > 0 && (
-                <p className="mt-3 text-xs text-cream-dim">
+                <p className="mt-3 wrap-break-word text-xs text-cream-dim">
                   funding walks spent: {diagnosis.walks.map((w) => `${short(w.wallet)} (${w.why})`).join(' · ')}
                 </p>
               )}
             </>
           ) : (
-            <p className="mt-4 text-sm text-cream-dim">{diagnosis.status} - {diagnosis.reason}</p>
+            <p className="mt-4 wrap-break-word text-sm text-cream-dim">{diagnosis.status} - {diagnosis.reason}</p>
           )}
         </motion.section>
       )}
 
-      <motion.div {...reveal} className="flex flex-wrap gap-3">
-        <button
-          onClick={download}
-          className="flex items-center gap-2 rounded-lg border border-noir-line px-4 py-2.5 text-[13px] text-gold-400 transition hover:bg-noir-800"
-        >
-          <Download className="h-4 w-4" /> download full receipt (JSON)
-        </button>
+      <motion.div {...reveal} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <a
           href={botDeepLink('watch', tape.token)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-lg bg-gold-400 px-4 py-2.5 text-[13px] font-semibold text-noir-950 transition hover:brightness-110"
+          className="flex items-center justify-center gap-2 rounded-lg bg-gold-400 px-4 py-3 text-[13px] font-semibold text-noir-950 transition hover:brightness-110"
         >
           <Eye className="h-4 w-4" /> watch {tape.tokenSymbol} on Telegram
         </a>
+        <button
+          onClick={download}
+          className="flex items-center justify-center gap-2 rounded-lg border border-noir-line px-4 py-3 text-[13px] text-gold-400 transition hover:bg-noir-800"
+        >
+          <Download className="h-4 w-4" /> download full receipt (JSON)
+        </button>
         <a
           href="/docs/usage#the-deep-pass"
-          className="flex items-center gap-2 rounded-lg border border-noir-line px-4 py-2.5 text-[13px] text-cream-dim transition hover:bg-noir-800 hover:text-cream"
+          className="flex items-center justify-center gap-2 rounded-lg border border-noir-line px-4 py-3 text-[13px] text-cream-dim transition hover:bg-noir-800 hover:text-cream"
         >
           deep pass API →
         </a>

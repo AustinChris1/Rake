@@ -123,7 +123,7 @@ export default function Page() {
             viewBox="0 0 64 64"
             fill="none"
             aria-hidden="true"
-            className="ghost-mark pointer-events-none absolute -right-24 -top-10 h-[540px] w-[540px] rotate-[8deg] text-gold-400 opacity-[0.05] sm:-right-10"
+            className="ghost-mark pointer-events-none absolute -right-16 -top-4 h-[280px] w-[280px] rotate-[8deg] text-gold-400 opacity-5 sm:-right-10 sm:-top-10 sm:h-[540px] sm:w-[540px]"
           >
             <g stroke="currentColor" strokeWidth="5" strokeLinecap="round">
               <path d="M48 9 L26 37" />
@@ -259,10 +259,10 @@ export default function Page() {
               exit={{ opacity: 0 }}
               className="mx-auto mt-10 max-w-2xl px-5"
             >
-              <div className="printer-slot mx-6" />
+              <div className="printer-slot mx-1 sm:mx-6" />
               <motion.div
                 layout
-                className="tape mx-8 -mt-[2px] rotate-[0.4deg] px-5 pb-4 pt-3 font-mono text-[12.5px] shadow-[0_18px_50px_rgba(0,0,0,0.6)]"
+                className="tape mx-2 -mt-[2px] rotate-[0.4deg] px-3 pb-4 pt-3 font-mono text-[11.5px] shadow-[0_18px_50px_rgba(0,0,0,0.6)] sm:mx-8 sm:px-5 sm:text-[12.5px]"
               >
                 <div className="flex items-center justify-between border-b border-dashed border-ink-soft pb-2 text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                   <span>RAKE · live tape</span>
