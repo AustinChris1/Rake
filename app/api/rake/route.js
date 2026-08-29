@@ -67,13 +67,20 @@ export async function GET(req) {
 
       running++;
       try {
+        // The receipt is sent the moment the deterministic engine finishes; the
+        // analyst note follows as its own event so a slow model never holds it up.
         const report = await runRake(token, {
           hours,
           wallet,
           onProgress: (message) => send('progress', { message }),
+          onReport: (partial) => {
+            cache.set(key, { ts: Date.now(), report: partial });
+            send('result', partial);
+          },
         });
         cache.set(key, { ts: Date.now(), report });
-        send('result', report);
+        if (report.diagnosis) send('analyst', report.diagnosis);
+        else send('result', report);
       } catch (err) {
         send('fatal', { message: err.message });
       } finally {

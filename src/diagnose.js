@@ -6,7 +6,8 @@ import { firstFunder, fundingEnabled } from './alchemy.js';
 import { ANTHROPIC_KEY_PRESENT, GROQ_API_KEY, GROQ_MODEL } from './env.js';
 
 const MODEL = 'claude-opus-5';
-const WALK_BUDGET = 4;
+const WALK_BUDGET = 2;
+const MAX_RETRY_WAIT_S = 20; // beyond this, skip the note rather than stall the receipt
 
 const WALK_SCHEMA = {
   type: 'object',
@@ -79,7 +80,7 @@ function compactReport({ tape, rake, ticket }) {
     cohortView[name] = {
       usd: Math.round(c.usd),
       sells: c.swaps,
-      wallets: c.walletList.slice(0, 6).map((w) => ({
+      wallets: c.walletList.slice(0, 5).map((w) => ({
         wallet: w.wallet,
         usd: Math.round(w.usd),
         exampleTx: w.txs[0],
@@ -108,11 +109,11 @@ function compactReport({ tape, rake, ticket }) {
     },
     cohorts: cohortView,
     clusters: rake.clusters
-      ? rake.clusters.slice(0, 4).map((cl) => ({
+      ? rake.clusters.slice(0, 3).map((cl) => ({
           funder: cl.funder,
           size: cl.size,
           infra: cl.infra ?? false,
-          members: cl.members.slice(0, 5).map((m) => m.wallet),
+          members: cl.members.slice(0, 4).map((m) => m.wallet),
         }))
       : 'DISABLED',
     meta: rake.meta,
@@ -210,11 +211,16 @@ async function diagnoseGroq(userMsg, onProgress) {
       if (res.status === 401 || res.status === 403) {
         return { status: 'LLM_DISABLED', reason: 'Groq key rejected.' };
       }
-      if (res.status === 429 && retries > 0) {
-        retries--;
+      if (res.status === 429) {
         const text = await res.text();
         const suggested = Number(text.match(/try again in (\d+(?:\.\d+)?)s/)?.[1] ?? 20);
-        const waitS = Math.min(70, Math.ceil(suggested) + 2);
+        const waitS = Math.ceil(suggested) + 1;
+        // Free-tier TPM refills on a rolling minute; a long wait is not worth
+        // blocking the receipt for, so give up honestly instead of stalling.
+        if (retries <= 0 || waitS > MAX_RETRY_WAIT_S) {
+          return { status: 'LLM_RATE_LIMITED', reason: `Groq free-tier rate limit (needs ~${waitS}s). The deterministic receipt above is unaffected.` };
+        }
+        retries--;
         onProgress(`analyst: Groq rate limit - retrying in ${waitS}s`);
         await new Promise((r) => setTimeout(r, waitS * 1000));
         i--; // the retry does not consume a tool-loop iteration

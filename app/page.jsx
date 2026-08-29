@@ -32,6 +32,7 @@ export default function Page() {
   const [report, setReport] = useState(null);
   const [fatal, setFatal] = useState(null);
   const [running, setRunning] = useState(false);
+  const [analystPending, setAnalystPending] = useState(false);
   const sourceRef = useRef(null);
   const tapeRef = useRef(null);
   const resultRef = useRef(null);
@@ -85,6 +86,7 @@ export default function Page() {
     setReport(null);
     setFatal(null);
     setRunning(true);
+    setAnalystPending(false);
     history.replaceState(null, '', '?' + new URLSearchParams({ token: tok, hours: hrs, ...(wal ? { wallet: wal } : {}) }));
 
     const params = new URLSearchParams({ token: tok, hours: hrs });
@@ -94,10 +96,18 @@ export default function Page() {
 
     es.addEventListener('progress', (ev) => setTrace((t) => [...t, JSON.parse(ev.data).message]));
     es.addEventListener('result', (ev) => {
-      setReport(JSON.parse(ev.data));
+      const next = JSON.parse(ev.data);
+      setReport(next);
+      // A receipt with no note yet means the analyst is still reading.
+      setAnalystPending(next.status === 'OK' && !next.diagnosis);
       setRunning(false);
-      es.close();
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+    });
+    es.addEventListener('analyst', (ev) => {
+      const diagnosis = JSON.parse(ev.data);
+      setReport((prev) => (prev ? { ...prev, diagnosis } : prev));
+      setAnalystPending(false);
+      es.close();
     });
     es.addEventListener('fatal', (ev) => {
       setFatal(JSON.parse(ev.data).message);
@@ -292,7 +302,7 @@ export default function Page() {
               ⚠ {fatal}
             </motion.div>
           )}
-          {report && <Receipt report={report} />}
+          {report && <Receipt report={report} analystPending={analystPending} />}
         </div>
 
         {/* ── the sweep ────────────────────────── */}

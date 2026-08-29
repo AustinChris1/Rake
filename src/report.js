@@ -17,7 +17,7 @@ import { fundingEnabled, recentInboundTransfers } from './alchemy.js';
 // fundingCap: top sellers walked (default fits the free tier). deep: adds two-hop cluster funder walks.
 export async function runRake(
   token,
-  { hours = 4, pairAddress, wallet, llm = true, fundingCap, deep = false, onProgress = () => {} } = {},
+  { hours = 4, pairAddress, wallet, llm = true, fundingCap, deep = false, onProgress = () => {}, onReport } = {},
 ) {
   const log = (msg) => onProgress(msg);
 
@@ -127,6 +127,9 @@ export async function runRake(
     }
 
     if (llm && tape.status === 'OK') {
+      // Hand the finished receipt over before the analyst runs, so a slow or
+      // rate-limited model never delays the numbers.
+      onReport?.({ status: tape.status, generatedAt: new Date().toISOString(), tape, rake, ticket, diagnosis: null });
       diagnosis = await diagnose({ tape, rake, ticket, onProgress });
     }
   }

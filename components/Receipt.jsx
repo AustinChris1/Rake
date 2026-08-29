@@ -65,7 +65,7 @@ const Tag = ({ name }) => (
   </span>
 );
 
-export default function Receipt({ report }) {
+export default function Receipt({ report, analystPending = false }) {
   if (report.status === 'UNPRICEABLE') {
     return (
       <motion.div {...reveal} className="rounded-xl border border-dashed border-gold-400 p-5 font-display text-sm tracking-wider text-gold-400">
@@ -276,6 +276,19 @@ export default function Receipt({ report }) {
         </motion.section>
       )}
 
+      {/* analyst still reading: the receipt above is already final */}
+      {analystPending && !diagnosis && (
+        <motion.section {...reveal} className="rounded-xl border border-noir-line bg-noir-900 px-4 py-5 sm:px-7 sm:py-6">
+          <h2 className="flex items-center gap-2 font-display text-[12px] font-bold uppercase tracking-[0.16em] text-gold-400 sm:text-[13px]">
+            <Bot className="h-4 w-4 shrink-0 animate-pulse" /> Analyst reading the evidence…
+          </h2>
+          <p className="mt-3 text-[13px] text-cream-dim">
+            The numbers above are final and unaffected. The written diagnosis arrives when the model
+            finishes reading them.
+          </p>
+        </motion.section>
+      )}
+
       {/* analyst */}
       {diagnosis && (
         <motion.section {...reveal} className="rounded-xl border border-noir-line bg-noir-900 px-4 py-5 sm:px-7 sm:py-6">
@@ -315,7 +328,10 @@ export default function Receipt({ report }) {
               )}
             </>
           ) : (
-            <p className="mt-4 wrap-break-word text-sm text-cream-dim">{diagnosis.status} - {diagnosis.reason}</p>
+            <p className="mt-4 wrap-break-word text-sm text-cream-dim">
+              {diagnosis.status === 'LLM_RATE_LIMITED' ? 'Skipped: ' : `${diagnosis.status} - `}
+              {diagnosis.reason}
+            </p>
           )}
         </motion.section>
       )}
