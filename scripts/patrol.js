@@ -6,9 +6,15 @@ import { storeEnabled, loadWatches, saveWatches } from '../src/watchstore.js';
 const BOT = process.env.TELEGRAM_BOT_TOKEN;
 const PUBLIC_URL = process.env.RAKE_PUBLIC_URL || 'http://localhost:3000';
 
+// Missing optional config is a skip, not a failure: the scheduled run stays green.
 if (!BOT || !storeEnabled()) {
-  console.error('Needs TELEGRAM_BOT_TOKEN + UPSTASH_REDIS_REST_URL/TOKEN.');
-  process.exit(1);
+  const missing = [
+    !BOT && 'TELEGRAM_BOT_TOKEN',
+    !process.env.UPSTASH_REDIS_REST_URL && 'UPSTASH_REDIS_REST_URL',
+    !process.env.UPSTASH_REDIS_REST_TOKEN && 'UPSTASH_REDIS_REST_TOKEN',
+  ].filter(Boolean);
+  console.log(`patrol skipped - watch storage not configured (missing: ${missing.join(', ')})`);
+  process.exit(0);
 }
 
 const tg = tgApi(BOT);
