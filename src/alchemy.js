@@ -88,15 +88,22 @@ export async function outgoingTransferCount(address) {
 }
 
 // Bounded funding walk; failures are counted, never hidden. Concurrency 2 rides under the free tier's ~330 CU/s.
-export async function walkFunders(wallets, { concurrency = 2, onProgress = () => {} } = {}) {
+export async function walkFunders(wallets, { concurrency = 2, deadline = null, onProgress = () => {} } = {}) {
   const list = [...wallets];
   const out = {};
   let next = 0;
   let done = 0;
   let failed = 0;
   let firstError = null;
+  let stoppedEarly = false;
   async function worker() {
     while (next < list.length) {
+      // A paid request must return inside its own timeout: stop starting walks
+      // past the deadline and report how many actually completed.
+      if (deadline && Date.now() > deadline) {
+        stoppedEarly = true;
+        return;
+      }
       const w = list[next++];
       try {
         out[w] = await firstFunder(w);
@@ -109,5 +116,5 @@ export async function walkFunders(wallets, { concurrency = 2, onProgress = () =>
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
-  return { funderOf: out, failed, firstError };
+  return { funderOf: out, failed, firstError, walked: done, stoppedEarly };
 }

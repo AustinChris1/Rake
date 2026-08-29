@@ -75,8 +75,9 @@ on Vercel and as repo secrets, then register the webhook once:
 ## The deep pass (x402) - RAKE as a service for agents
 
 `GET /api/deeppass?token=0x…&hours=4` returns the deterministic receipt with
-**every** eligible seller funding-walked (not just the top 60) and **two-hop
-funding graphs** on cluster funders - who funded the fleet's funder. Payment is
+far deeper funding walks than the free tier's top 60 (richest sellers first, and the
+receipt states exactly how many were walked) plus **two-hop funding graphs** on cluster
+funders - who funded the fleet's funder. Payment is
 [x402](https://x402.org): the route answers `402 Payment Required`, the caller
 pays `$0.05` USDC on Base programmatically and retries with the proof - no
 account, no API key. Any agent with an x402 client can buy one answer:

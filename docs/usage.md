@@ -59,8 +59,11 @@ Streams `progress` events (the live trace) and a final `result` event with the f
 GET https://basedrake.vercel.app/api/deeppass?token=0xTOKEN&hours=4
 ```
 
-The deep pass walks **every** eligible seller's funding (not just the top 60) and adds two-hop
-funding graphs on cluster funders - who funded the fleet's funder. Payment is
+The deep pass walks eligible sellers' funding far beyond the free tier's top 60, richest
+first, and adds two-hop funding graphs on cluster funders - who funded the fleet's funder.
+On very large windows the walk stops at the request's time budget and the receipt states
+exactly how many sellers were walked (`walked N of M sellers (time budget)`). It never
+silently truncates. Payment is
 [x402](https://x402.org): the route answers `402 Payment Required` with a machine-readable quote;
 your client pays $0.05 USDC and retries with the proof. No account, no API key.
 

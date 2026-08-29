@@ -3,7 +3,14 @@
 import { DEXSCREENER_TOKEN_PAIRS, QUOTE_TOKENS } from './config.js';
 
 export async function fetchPairs(token) {
-  const res = await fetch(DEXSCREENER_TOKEN_PAIRS(token));
+  // One retry: a transient upstream blip should not fail a whole (paid) run.
+  let res;
+  try {
+    res = await fetch(DEXSCREENER_TOKEN_PAIRS(token));
+  } catch {
+    await new Promise((r) => setTimeout(r, 1500));
+    res = await fetch(DEXSCREENER_TOKEN_PAIRS(token));
+  }
   if (!res.ok) throw new Error(`Dexscreener ${res.status} for ${token}`);
   const pairs = await res.json();
   if (!Array.isArray(pairs)) throw new Error('Unexpected Dexscreener response shape');

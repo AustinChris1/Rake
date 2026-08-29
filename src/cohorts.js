@@ -122,7 +122,7 @@ export async function initialLpEoa({ ctx, creationBlock }) {
 }
 
 // Funding annotations (needs Alchemy): deployerFunded sellers + shared-funder clusters.
-export async function fundingCohort({ sellers, initialLp, firstBlockWallets, cap = FUNDING_MAX_WALLETS, log = () => {} }) {
+export async function fundingCohort({ sellers, initialLp, firstBlockWallets, cap = FUNDING_MAX_WALLETS, deadline = null, log = () => {} }) {
   if (!fundingEnabled()) return { enabled: false };
   const eligible = sellers.filter(
     (s) => s.usd >= FUNDING_MIN_USD && /^0x[0-9a-f]{40}$/.test(s.wallet), // never walk 'unattributed'
@@ -136,9 +136,11 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, cap
       ? `funding walk: top ${targets.length} of ${eligible.length} sellers ≥ $${FUNDING_MIN_USD} (by USD)`
       : `funding walk: ${targets.length} sellers ≥ $${FUNDING_MIN_USD}`,
   );
-  const { funderOf, failed, firstError } = await walkFunders(targets, {
+  const { funderOf, failed, firstError, walked, stoppedEarly } = await walkFunders(targets, {
+    deadline,
     onProgress: (d, t) => d % 25 === 0 && log(`funding walk ${d}/${t}`),
   });
+  if (stoppedEarly) log(`funding walk stopped at time budget: ${walked}/${targets.length} sellers walked`);
   if (failed > 0) log(`⚠ ${failed}/${targets.length} funding walks FAILED: ${firstError}`);
   if (targets.length > 0 && failed === targets.length) {
     return { enabled: false, failedReason: `all walks failed - ${firstError}` };
@@ -198,7 +200,7 @@ export async function fundingCohort({ sellers, initialLp, firstBlockWallets, cap
     clusters.filter((c) => !c.infra).flatMap((c) => c.members.map((m) => m.wallet)),
   );
 
-  return { enabled: true, initialLp, funderOf, deployerFunded, clusters, clusterHouse, walked: targets.length };
+  return { enabled: true, initialLp, funderOf, deployerFunded, clusters, clusterHouse, walked, requested: targets.length, stoppedEarly };
 }
 
 // Classify sellers and compute the rake. Priority: first-block > deployer-funded > cluster > lp > repeat.
@@ -249,7 +251,9 @@ export function computeRake(tape, { firstBlock, lp, repeat, funding = { enabled:
       lpEventsInWindow: lp.events,
       initialLp: funding.enabled ? funding.initialLp : null,
       deployerFunded: funding.enabled
-        ? `walked ${funding.walked} sellers`
+        ? funding.stoppedEarly
+          ? `walked ${funding.walked} of ${funding.requested} sellers (time budget)`
+          : `walked ${funding.walked} sellers`
         : funding.failedReason
           ? `FAILED (${funding.failedReason})`
           : 'DISABLED (set ALCHEMY_API_KEY to enable funding walks)',

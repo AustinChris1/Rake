@@ -353,8 +353,8 @@ export default function Page() {
               <BookOpen className="h-5 w-5 text-gold-400" />
               <h3 className="mt-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-cream">The deep pass - for agents</h3>
               <p className="mt-2 text-[13px] leading-relaxed text-cream-dim">
-                One GET, one nickel. Any agent pays $0.05 USDC over x402 and receives the full forensic receipt:
-                every seller funding-walked, two-hop cluster graphs. No account, no API key.
+                One GET, one nickel. Any agent pays $0.05 USDC over x402 and receives the deep forensic receipt:
+                far more sellers funding-walked, two-hop cluster graphs. No account, no API key.
               </p>
               <span className="mt-3 inline-block text-[13px] text-gold-400 transition group-hover:translate-x-1">read the API docs →</span>
             </Link>

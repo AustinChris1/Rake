@@ -17,7 +17,7 @@ import { fundingEnabled, recentInboundTransfers } from './alchemy.js';
 // fundingCap: top sellers walked (default fits the free tier). deep: adds two-hop cluster funder walks.
 export async function runRake(
   token,
-  { hours = 4, pairAddress, wallet, llm = true, fundingCap, deep = false, onProgress = () => {}, onReport } = {},
+  { hours = 4, pairAddress, wallet, llm = true, fundingCap, deep = false, onProgress = () => {}, onReport, deadline = null } = {},
 ) {
   const log = (msg) => onProgress(msg);
 
@@ -70,6 +70,7 @@ export async function runRake(
       initialLp,
       firstBlockWallets: firstBlock.wallets,
       cap: fundingCap,
+      deadline,
       log,
     });
     if (deep && funding.enabled) {
@@ -77,6 +78,7 @@ export async function runRake(
       const { firstFunder } = await import('./alchemy.js');
       for (const cl of funding.clusters ?? []) {
         if (cl.infra) continue;
+        if (deadline && Date.now() > deadline + 45_000) break; // two-hop is a handful of calls: allow past the walk budget
         try {
           log(`deep pass: walking funder-of-funder for ${cl.funder}…`);
           cl.funderFundedBy = await firstFunder(cl.funder);

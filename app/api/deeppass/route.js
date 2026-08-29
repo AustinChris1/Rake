@@ -15,6 +15,7 @@ const PAY_TO = process.env.X402_PAY_TO;
 const NETWORK = process.env.X402_NETWORK || 'eip155:8453'; // Base mainnet
 const PRICE = process.env.X402_PRICE || '$0.05';
 const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://x402.org/facilitator';
+const WALK_BUDGET_MS = 225_000; // walks stop here, leaving room for cluster checks, two-hop, and serialization
 
 async function deepHandler(req) {
   const { searchParams } = new URL(req.url);
@@ -28,12 +29,15 @@ async function deepHandler(req) {
     return NextResponse.json({ error: 'wallet must be a valid address' }, { status: 400 });
   }
 
+  // maxDuration is 300s, so the engine gets a budget that leaves room to serialize
+  // and settle. Walks stop at the budget and the receipt says how many completed.
   const report = await runRake(token, {
     hours,
     wallet,
     llm: false, // deterministic JSON for machine callers; the webapp has the analyst
     fundingCap: 1000,
     deep: true,
+    deadline: Date.now() + WALK_BUDGET_MS,
     onProgress: () => {},
   });
   return NextResponse.json({ tier: 'deep-pass', ...report });
@@ -54,7 +58,7 @@ if (PAY_TO) {
     {
       accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO, maxTimeoutSeconds: 300 },
       description:
-        'RAKE deep pass: full funding walk of every eligible seller plus two-hop funding graphs on cluster funders. Deterministic receipt JSON.',
+        'RAKE deep pass: funding walks across every eligible seller the request budget allows (top sellers by USD first, count stated in the receipt) plus two-hop funding graphs on cluster funders. Deterministic receipt JSON.',
       mimeType: 'application/json',
     },
     resourceServer,
