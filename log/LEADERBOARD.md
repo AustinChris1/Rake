@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-07T10:08:32.307Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-07T16:25:14.871Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -13,13 +13,13 @@ _Auto-generated 2026-09-07T10:08:32.307Z. Every row is a 1h window of real swaps
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
 | BLUECHIP `0xb2000000…` | 54.6% | $18,512 | $10,104 | 50957169 |
-| STFY `0xc6405d7a…` | 47.6% | $1,068 | $508 | 50993179 |
+| Basecat `0xb2000000…` | 45.2% | $139,974 | $63,215 | 51004442 |
 | BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
-| Basecat `0xb2000000…` | 36.9% | $57,842 | $21,323 | 50982770 |
 | MAMO `0x7300b37d…` | 32.9% | $4,855 | $1,598 | 50552392 |
 | SOL `0x311935cd…` | 32.9% | $261,148 | $86,046 | 50784730 |
 | AERO `0x940181a9…` | 31.6% | $46,099 | $14,585 | 50962285 |
+| STFY `0xc6405d7a…` | 31.3% | $9,294 | $2,907 | 51004480 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 106 high-rake events (≥50%), **1%** were down ≥30% twelve hours later. Base rate across 230 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 108 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 238 low-rake events: **5%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
