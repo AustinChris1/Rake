@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-10T04:29:18.186Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-10T09:37:06.067Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -12,14 +12,14 @@ _Auto-generated 2026-09-10T04:29:18.186Z. Every row is a 1h window of real swaps
 | FLOCK `0x5ab3d4c3…` | 64.3% | $20,401 | $13,117 | 50929671 |
 | NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
-| LAPTOP `0xb0952747…` | 57.6% | $93,587 | $53,888 | 51112510 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| VVV `0xacfe6019…` | 47.7% | $320,926 | $153,190 | 51112561 |
+| BLUECHIP `0xb2000000…` | 52.6% | $8,711 | $4,578 | 51121818 |
+| VVV `0xacfe6019…` | 46.5% | $176,025 | $81,884 | 51121805 |
 | BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
-| DRB `0x3ec2156d…` | 36.8% | $16,245 | $5,975 | 51078624 |
+| STONKEX `0x5ab000ff…` | 39.1% | $38,744 | $15,146 | 51121793 |
 | AERO `0x940181a9…` | 34.9% | $95,404 | $33,279 | 51104789 |
 | MAMO `0x7300b37d…` | 32.9% | $4,855 | $1,598 | 50552392 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 127 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 288 low-rake events: **5%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 128 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 291 low-rake events: **5%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
