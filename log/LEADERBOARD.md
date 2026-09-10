@@ -1,11 +1,11 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-10T18:20:26.321Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-10T21:35:43.689Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
-| DRB `0x3ec2156d…` | 536.3% | $2,052 | $11,005 | 51137515 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
+| DRB `0x3ec2156d…` | 206.4% | $4,858 | $10,026 | 51143383 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
 | VVV `0xacfe6019…` | 129.6% | $99,197 | $128,528 | 51130252 |
 | KTA `0xc0634090…` | 92% | $6,130 | $5,639 | 50784749 |
@@ -14,12 +14,12 @@ _Auto-generated 2026-09-10T18:20:26.321Z. Every row is a 1h window of real swaps
 | NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| Basecat `0xb2000000…` | 44.2% | $38,246 | $16,903 | 51130268 |
+| Basecat `0xb2000000…` | 48.3% | $154,723 | $74,791 | 51143366 |
 | BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
-| STONKEX `0x5ab000ff…` | 37.6% | $41,844 | $15,723 | 51137489 |
-| LAPTOP `0xb0952747…` | 37.1% | $11,002 | $4,085 | 51137460 |
 | AERO `0x940181a9…` | 34.9% | $95,404 | $33,279 | 51104789 |
+| MAMO `0x7300b37d…` | 32.9% | $4,855 | $1,598 | 50552392 |
+| SOL `0x311935cd…` | 32.9% | $261,148 | $86,046 | 50784730 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 133 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 300 low-rake events: **5%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 133 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 301 low-rake events: **5%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
