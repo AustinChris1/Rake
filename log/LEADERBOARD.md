@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-12T22:12:35.741Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-13T00:51:19.826Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -14,9 +14,9 @@ _Auto-generated 2026-09-12T22:12:35.741Z. Every row is a 1h window of real swaps
 | NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| LAPTOP `0xb0952747…` | 52.9% | $50,211 | $26,575 | 51230828 |
 | BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
 | AERO `0x940181a9…` | 34.9% | $95,404 | $33,279 | 51104789 |
+| LAPTOP `0xb0952747…` | 34.4% | $12,276 | $4,224 | 51235583 |
 | MAMO `0x7300b37d…` | 32.9% | $4,855 | $1,598 | 50552392 |
 | SOL `0x311935cd…` | 32.9% | $261,148 | $86,046 | 50784730 |
 
