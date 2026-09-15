@@ -1,12 +1,14 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-14T23:52:45.290Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-15T04:46:02.092Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
 | ClawBank `0x16332535…` | 4594% | $11 | $520 | 51147807 |
+| VVV `0xacfe6019…` | 2885.9% | $395 | $11,391 | 51329098 |
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
+| LAPTOP `0xb0952747…` | 215.2% | $6,364 | $13,696 | 51329020 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
 | AERO `0x940181a9…` | 112.6% | $22,377 | $25,207 | 51320297 |
 | KTA `0xc0634090…` | 92% | $6,130 | $5,639 | 50784749 |
@@ -17,8 +19,6 @@ _Auto-generated 2026-09-14T23:52:45.290Z. Every row is a 1h window of real swaps
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | cbBTC `0xcbb7c000…` | 57.2% | $1,210,181 | $691,757 | 51320279 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
-| LAPTOP `0xb0952747…` | 41.2% | $78,905 | $32,472 | 51320220 |
 
 ## Self-check - does a high rake predict anything?
 
