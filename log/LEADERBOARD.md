@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-16T20:01:48.932Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-16T22:53:13.549Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -8,15 +8,15 @@ _Auto-generated 2026-09-16T20:01:48.932Z. Every row is a 1h window of real swaps
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
 | DRB `0x3ec2156d…` | 340.4% | $1,854 | $6,311 | 51393855 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
+| BNKR `0x22af33fe…` | 213.9% | $13 | $27 | 51404915 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
+| LAPTOP `0xb0952747…` | 106.1% | $22,148 | $23,500 | 51404871 |
 | KTA `0xc0634090…` | 92% | $6,130 | $5,639 | 50784749 |
 | VELVET `0xbf927b84…` | 91.5% | $36,772 | $33,662 | 50674973 |
 | FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
 | NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
 | B3 `0xb3b32f9f…` | 61.6% | $4,909 | $3,022 | 51307825 |
-| BNKR `0x22af33fe…` | 61.2% | $14,396 | $8,813 | 51384275 |
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
-| LAPTOP `0xb0952747…` | 59.1% | $13,893 | $8,211 | 51399725 |
 | cbBTC `0xcbb7c000…` | 56.8% | $606,812 | $344,554 | 51360331 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
 
