@@ -1,12 +1,14 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-16T11:25:18.760Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-16T16:45:35.135Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
 | ClawBank `0x16332535…` | 4594% | $11 | $520 | 51147807 |
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
+| DRB `0x3ec2156d…` | 340.4% | $1,854 | $6,311 | 51393855 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
+| LAPTOP `0xb0952747…` | 194.3% | $31,244 | $60,708 | 51393815 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
 | KTA `0xc0634090…` | 92% | $6,130 | $5,639 | 50784749 |
 | VELVET `0xbf927b84…` | 91.5% | $36,772 | $33,662 | 50674973 |
@@ -17,9 +19,7 @@ _Auto-generated 2026-09-16T11:25:18.760Z. Every row is a 1h window of real swaps
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | cbBTC `0xcbb7c000…` | 56.8% | $606,812 | $344,554 | 51360331 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
-| AERO `0x940181a9…` | 38.7% | $6,331 | $2,453 | 51384258 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 183 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 436 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 185 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 438 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
