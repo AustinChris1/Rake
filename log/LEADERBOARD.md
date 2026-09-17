@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-17T13:23:58.070Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-17T18:11:39.059Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -18,7 +18,7 @@ _Auto-generated 2026-09-17T13:23:58.070Z. Every row is a 1h window of real swaps
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
 | cbBTC `0xcbb7c000…` | 56.8% | $606,812 | $344,554 | 51360331 |
 | ZORA `0x11111111…` | 55.7% | $8,903 | $4,961 | 50717943 |
-| BASELINE `0xb2000000…` | 41.5% | $2,044 | $847 | 50612063 |
+| BLUECHIP `0xb2000000…` | 46.5% | $116,972 | $54,424 | 51439637 |
 
 ## Self-check - does a high rake predict anything?
 
