@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-22T14:43:00.574Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-22T18:47:09.546Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -22,4 +22,4 @@ _Auto-generated 2026-09-22T14:43:00.574Z. Every row is a 1h window of real swaps
 
 ## Self-check - does a high rake predict anything?
 
-Of 247 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 568 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 248 high-rake events (≥50%), **2%** were down ≥30% twelve hours later. Base rate across 573 low-rake events: **3%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
