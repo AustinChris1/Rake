@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-09-28T15:21:06.573Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-09-28T21:53:05.329Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -11,15 +11,15 @@ _Auto-generated 2026-09-28T15:21:06.573Z. Every row is a 1h window of real swaps
 | DRV `0x9d0e8f5b…` | 124.1% | $24,129 | $29,944 | 51547366 |
 | FLOWER `0x3e12b9d6…` | 105.2% | $89 | $94 | 51409349 |
 | SPIKE `0xb2000000…` | 104.2% | $744 | $776 | 51777099 |
+| xdp `0x07b3d902…` | 98.7% | $4,217,772 | $4,163,237 | 51921389 |
+| boar `0x0cbf291b…` | 93.7% | $43,607 | $40,851 | 51921468 |
 | VELVET `0xbf927b84…` | 91.5% | $36,772 | $33,662 | 50674973 |
 | FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
-| SOL `0x311935cd…` | 78.4% | $338,188 | $265,037 | 51909741 |
-| BLUECHIP `0xb2000000…` | 69.7% | $23,161 | $16,152 | 51909701 |
+| SOL `0x311935cd…` | 81.2% | $69,820 | $56,708 | 51921505 |
 | NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
 | B3 `0xb3b32f9f…` | 61.2% | $14,752 | $9,025 | 51792549 |
 | CP `0x001aad84…` | 60.7% | $10,338 | $6,270 | 50921224 |
-| cbBTC `0xcbb7c000…` | 57.1% | $632,395 | $361,287 | 51530318 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 296 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 684 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 298 high-rake events (≥50%), **4%** were down ≥30% twelve hours later. Base rate across 687 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
