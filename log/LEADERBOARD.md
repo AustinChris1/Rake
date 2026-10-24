@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-10-24T00:30:15.123Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-10-24T05:42:29.869Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -15,10 +15,10 @@ _Auto-generated 2026-10-24T00:30:15.123Z. Every row is a 1h window of real swaps
 | VELVET `0xbf927b84…` | 108.3% | $40,984 | $44,406 | 52136158 |
 | FLOWER `0x3e12b9d6…` | 105.2% | $89 | $94 | 51409349 |
 | NOCK `0x9b5e262c…` | 97% | $3,356 | $3,257 | 52266702 |
-| xdp `0x07b3d902…` | 86.1% | $793,302 | $683,268 | 53006150 |
+| xdp `0x07b3d902…` | 93.7% | $623,671 | $584,312 | 53015502 |
 | FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
 | KTA `0xc0634090…` | 81% | $1,949 | $1,578 | 52258007 |
-| NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
+| AXIS `0x5be75e3b…` | 72.1% | $43,962 | $31,711 | 53015495 |
 
 ## Self-check - does a high rake predict anything?
 
