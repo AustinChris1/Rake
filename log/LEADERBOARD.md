@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-10-29T21:46:31.124Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-10-30T01:53:30.317Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -16,10 +16,10 @@ _Auto-generated 2026-10-29T21:46:31.124Z. Every row is a 1h window of real swaps
 | FLOWER `0x3e12b9d6…` | 105.2% | $89 | $94 | 51409349 |
 | NOCK `0x9b5e262c…` | 97% | $3,356 | $3,257 | 52266702 |
 | FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
-| xdp `0x07b3d902…` | 81.2% | $669,680 | $543,573 | 53260510 |
+| xdp `0x07b3d902…` | 82.7% | $1,187,984 | $982,898 | 53267922 |
 | KTA `0xc0634090…` | 81% | $1,949 | $1,578 | 52258007 |
-| NVDAc `0xb2000000…` | 63.3% | $166,296 | $105,203 | 50498537 |
+| AXIS `0x5be75e3b…` | 80.9% | $18,068 | $14,618 | 53267860 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 460 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 837 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 461 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 840 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
