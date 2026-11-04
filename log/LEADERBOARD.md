@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-11-04T14:24:50.333Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-11-04T21:19:20.525Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -9,8 +9,6 @@ _Auto-generated 2026-11-04T14:24:50.333Z. Every row is a 1h window of real swaps
 | BLUECHIP `0xb2000000…` | 423.2% | $1,967 | $8,324 | 52196914 |
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
-| DRB `0x3ec2156d…` | 176% | $1,907 | $3,356 | 53506347 |
-| Reboot `0x6f18277e…` | 149.5% | $20,053 | $29,989 | 53506254 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
 | ZEN `0xf43eb8de…` | 133.7% | $42,311 | $56,556 | 52286930 |
 | AERO `0x940181a9…` | 127.8% | $179,712 | $229,649 | 52258061 |
@@ -19,7 +17,9 @@ _Auto-generated 2026-11-04T14:24:50.333Z. Every row is a 1h window of real swaps
 | xdp `0x07b3d902…` | 98.7% | $227,423 | $224,507 | 53506390 |
 | NOCK `0x9b5e262c…` | 97% | $3,356 | $3,257 | 52266702 |
 | FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
+| ATLAS `0xb462a503…` | 82.1% | $3,871 | $3,178 | 53340971 |
+| KTA `0xc0634090…` | 81% | $1,949 | $1,578 | 52258007 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 505 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 865 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 506 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 866 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
