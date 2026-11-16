@@ -1,11 +1,12 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-11-15T21:41:46.104Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-11-16T01:53:08.879Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
 | MUc `0xb2000000…` | 9172.3% | $137 | $12,599 | 55710624 |
 | ClawBank `0x16332535…` | 4594% | $11 | $520 | 51147807 |
+| AERO `0x3f5bf3ed…` | 3659.4% | $83 | $3,048 | 58017332 |
 | GOOGLc `0xb2000000…` | 2926.3% | $231 | $6,770 | 57160278 |
 | BLUECHIP `0xb2000000…` | 423.2% | $1,967 | $8,324 | 52196914 |
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
@@ -18,7 +19,6 @@ _Auto-generated 2026-11-15T21:41:46.104Z. Every row is a 1h window of real swaps
 | FLOWER `0x3e12b9d6…` | 105.2% | $89 | $94 | 51409349 |
 | NOCK `0x9b5e262c…` | 97% | $3,356 | $3,257 | 52266702 |
 | SNDKc `0xb2000000…` | 87.2% | $71,962 | $62,763 | 56308034 |
-| FLOCK `0x5ab3d4c3…` | 85% | $18,595 | $15,809 | 51263223 |
 
 ## Self-check - does a high rake predict anything?
 
