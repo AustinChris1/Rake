@@ -1,6 +1,6 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-11-20T11:20:14.877Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-11-20T20:01:55.409Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
@@ -17,9 +17,9 @@ _Auto-generated 2026-11-20T11:20:14.877Z. Every row is a 1h window of real swaps
 | AERO `0x940181a9…` | 127.8% | $179,712 | $229,649 | 52258061 |
 | VELVET `0xbf927b84…` | 108.3% | $40,984 | $44,406 | 52136158 |
 | FLOWER `0x3e12b9d6…` | 105.2% | $89 | $94 | 51409349 |
+| ANTc `0xb2000000…` | 100.9% | $76,070 | $76,741 | 60071325 |
 | xdp `0x07b3d902…` | 98.9% | $13,798 | $13,645 | 59081809 |
-| NOCK `0x9b5e262c…` | 97% | $3,356 | $3,257 | 52266702 |
 
 ## Self-check - does a high rake predict anything?
 
-Of 555 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 940 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 556 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 942 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
