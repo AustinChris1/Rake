@@ -1,17 +1,17 @@
 # RAKE - Trapped-candle leaderboard (Base)
 
-_Auto-generated 2026-11-22T11:03:44.762Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
+_Auto-generated 2026-11-22T18:27:27.017Z. Every row is a 1h window of real swaps; rake % = share of pool inflow that left through house cohorts (first-block, deployer-funded, lp, repeat). Full event log: [events.jsonl](./events.jsonl)._
 
 | token | rake % | inflow | to the house | window end block |
 |---|---:|---:|---:|---|
 | MUc `0xb2000000…` | 9172.3% | $137 | $12,599 | 55710624 |
 | ClawBank `0x16332535…` | 4594% | $11 | $520 | 51147807 |
 | GOOGLc `0xb2000000…` | 2926.3% | $231 | $6,770 | 57160278 |
+| NVDAc `0xb2000000…` | 1335.9% | $1,357 | $18,123 | 60907442 |
 | BLUECHIP `0xb2000000…` | 423.2% | $1,967 | $8,324 | 52196914 |
 | Anthropic `0xbc6066cc…` | 403.9% | $13 | $51 | 59765980 |
 | LSK `0xac485391…` | 379% | $5,699 | $21,600 | 51296293 |
 | Reboot `0x6f18277e…` | 358.5% | $990 | $3,548 | 53527758 |
-| NVDAc `0xb2000000…` | 356.8% | $5,761 | $20,556 | 60774572 |
 | BASEJUICE `0xb2000000…` | 261.3% | $301 | $787 | 50862459 |
 | VIBES `0xeffc8815…` | 146.2% | $6,313 | $9,231 | 50747782 |
 | ZEN `0xf43eb8de…` | 133.7% | $42,311 | $56,556 | 52286930 |
@@ -22,4 +22,4 @@ _Auto-generated 2026-11-22T11:03:44.762Z. Every row is a 1h window of real swaps
 
 ## Self-check - does a high rake predict anything?
 
-Of 560 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 950 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
+Of 560 high-rake events (≥50%), **3%** were down ≥30% twelve hours later. Base rate across 953 low-rake events: **4%**. **In this sample, high rake did NOT predict drawdown better than baseline.** The receipts stand either way.
